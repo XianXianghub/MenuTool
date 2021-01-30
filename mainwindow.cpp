@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
      CreatTrayIcon();
      QClipboard *clipboard = QApplication::clipboard();   //获取系统剪贴板指针
      tool= new ToolUtils(clipboard);
+
 }
 
 MainWindow::~MainWindow()
@@ -58,8 +59,8 @@ void MainWindow::CreatTrayIcon()
 
     myTrayIcon = new QSystemTrayIcon(this);
 
-    myTrayIcon->setIcon(QIcon("./pkq.ico"));   //设置图标图片
-    setWindowIcon(QIcon("./pkq.ico"));  //把图片设置到窗口上
+    myTrayIcon->setIcon(QIcon(":/image/pkq.ico"));   //设置图标图片
+    setWindowIcon(QIcon(":/image/pkq.ico"));  //把图片设置到窗口上
 
     myTrayIcon->setToolTip("V1.0");    //托盘时，鼠标放上去的提示信息
 
@@ -128,4 +129,10 @@ void MainWindow::get_w2l_action()
     QString originalText  =  tool->getfromClip().trimmed();            //获取剪贴板上文本信息
     QString path = QDir::fromNativeSeparators(originalText);
     tool->setClip(path);
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    Dialog d;
+    d.show();
 }

@@ -17,13 +17,13 @@ CXXFLAGS      = -pipe -fno-keep-inline-dllexport -g -frtti -Wall -Wextra -fexcep
 INCPATH       = -I. -I"..\..\..\..\QTSoftware\5.4\mingw491_32\include" -I"..\..\..\..\QTSoftware\5.4\mingw491_32\include\QtWidgets" -I"..\..\..\..\QTSoftware\5.4\mingw491_32\include\QtGui" -I"..\..\..\..\QTSoftware\5.4\mingw491_32\include\QtCore" -I"debug" -I"." -I"..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\win32-g++"
 LINKER      =        g++
 LFLAGS        =        -Wl,-subsystem,windows -mthreads
-LIBS        =        -lglu32 -lopengl32 -lgdi32 -luser32 -lmingw32 -LE:/QTSoftware/5.4/mingw491_32/lib -lqtmaind -LC:\mingw491\mingw32\lib -LC:\Utils\icu32_53_1_mingw482\lib -LC:\utils\postgresql\pgsql\lib -LC:\utils\mysql\mysql\lib -LC:\opensll\lib -lshell32 -LE:\QTSoftware\5.4\mingw491_32/lib -lQt5Widgetsd -lQt5Guid -lQt5Cored 
+LIBS        =        -lglu32 -lopengl32 -lgdi32 -luser32 -lmingw32 -LE:/QTSoftware/5.4/mingw491_32/lib -lqtmaind -LC:\mingw491\mingw32\lib -LC:\Utils\icu32_53_1_mingw482\lib -LC:\utils\postgresql\pgsql\lib -LC:\utils\mysql\mysql\lib -LC:\opensll\lib -lshell32 -LE:\QTSoftware\5.4\mingw491_32/lib -lQt5Widgetsd -lQt5Guid -lQt5Cored debug\logo_res.o 
 QMAKE         = E:\QTSoftware\5.4\mingw491_32\bin\qmake.exe
 IDC           = idc
 IDL           = midl
 ZIP           = zip -r -9
 DEF_FILE      = 
-RES_FILE      = 
+RES_FILE      = debug\logo_res.o
 COPY          = copy /y
 SED           = $(QMAKE) -install sed
 COPY_FILE     = $(COPY)
@@ -45,18 +45,24 @@ OBJECTS_DIR   = debug
 
 SOURCES       = main.cpp \
 		mainwindow.cpp \
-		toolutils.cpp debug\qrc_resource.cpp \
-		debug\moc_mainwindow.cpp
+		toolutils.cpp \
+		dialog.cpp debug\qrc_resource.cpp \
+		debug\moc_mainwindow.cpp \
+		debug\moc_dialog.cpp
 OBJECTS       = debug/main.o \
 		debug/mainwindow.o \
 		debug/toolutils.o \
+		debug/dialog.o \
 		debug/qrc_resource.o \
-		debug/moc_mainwindow.o
+		debug/moc_mainwindow.o \
+		debug/moc_dialog.o
 
 DIST          = SystemTrayIconForm.ui.qml mainwindow.h \
-		toolutils.h main.cpp \
+		toolutils.h \
+		dialog.h main.cpp \
 		mainwindow.cpp \
-		toolutils.cpp
+		toolutils.cpp \
+		dialog.cpp
 QMAKE_TARGET  = Mac
 DESTDIR        = debug\ #avoid trailing-slash linebreak
 TARGET         = Mac.exe
@@ -83,8 +89,11 @@ DESTDIR_TARGET = debug\Mac.exe
 first: all
 all: Makefile.Debug  $(DESTDIR_TARGET)
 
-$(DESTDIR_TARGET): ui_mainwindow.h $(OBJECTS) 
+$(DESTDIR_TARGET): ui_mainwindow.h ui_dialog.h $(OBJECTS) debug/logo_res.o
 	$(LINKER) $(LFLAGS) -o $(DESTDIR_TARGET) $(OBJECTS)  $(LIBS)
+
+debug/logo_res.o: logo.rc
+	windres -i logo.rc -o debug\logo_res.o --include-dir=. $(DEFINES)
 
 qmake: FORCE
 	@$(QMAKE) -spec win32-g++ CONFIG+=debug -o Makefile.Debug Mac.pro
@@ -95,7 +104,8 @@ dist:
 	$(ZIP) Mac.zip $(SOURCES) $(DIST) Mac.pro ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\spec_pre.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\qdevice.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\device_config.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\common\shell-win32.conf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\qconfig.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_axbase.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_axbase_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_axcontainer.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_axcontainer_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_axserver.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_axserver_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_bluetooth.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_bluetooth_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_bootstrap_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_clucene_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_concurrent.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_concurrent_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_core.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_core_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_declarative.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_declarative_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_designer.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_designer_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_designercomponents_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_enginio.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_enginio_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_gui.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_gui_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_help.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_help_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_location.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_location_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_multimedia.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_multimedia_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_multimediawidgets.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_multimediawidgets_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_network.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_network_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_nfc.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_nfc_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_opengl.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_opengl_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_openglextensions.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_openglextensions_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_platformsupport_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_positioning.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_positioning_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_printsupport.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_printsupport_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_qml.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_qml_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_qmldevtools_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_qmltest.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_qmltest_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_qtmultimediaquicktools_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_quick.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_quick_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_quickparticles_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_quickwidgets.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_quickwidgets_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_script.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_script_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_scripttools.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_scripttools_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_sensors.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_sensors_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_serialport.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_serialport_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_sql.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_sql_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_svg.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_svg_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_testlib.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_testlib_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_uitools.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_uitools_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_webchannel.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_webchannel_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_webkit.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_webkit_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_webkitwidgets.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_webkitwidgets_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_websockets.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_websockets_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_webview.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_webview_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_widgets.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_widgets_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_winextras.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_winextras_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_xml.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_xml_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_xmlpatterns.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\modules\qt_lib_xmlpatterns_private.pri ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\qt_functions.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\qt_config.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\win32\qt_config.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\win32-g++\qmake.conf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\spec_post.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\exclusive_builds.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\default_pre.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\win32\default_pre.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\resolve_config.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\exclusive_builds_post.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\default_post.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\build_pass.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\win32\rtti.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\precompile_header.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\warn_on.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\qt.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\resources.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\moc.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\win32\opengl.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\uic.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\win32\windows.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\testcase_targets.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\exceptions.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\yacc.prf ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\lex.prf Mac.pro resource.qrc E:/QTSoftware/5.4/mingw491_32/lib/qtmaind.prl E:/QTSoftware/5.4/mingw491_32/lib/Qt5Cored.prl E:/QTSoftware/5.4/mingw491_32/lib/Qt5Widgetsd.prl E:/QTSoftware/5.4/mingw491_32/lib/Qt5Guid.prl  NO_PCH_SOURCES RESOURCES HEADERS SOURCES OBJECTIVE_SOURCES FORMS YACCSOURCES YACCSOURCES LEXSOURCES 
 
 clean: compiler_clean 
-	-$(DEL_FILE) debug\main.o debug\mainwindow.o debug\toolutils.o debug\qrc_resource.o debug\moc_mainwindow.o
+	-$(DEL_FILE) debug\main.o debug\mainwindow.o debug\toolutils.o debug\dialog.o debug\qrc_resource.o debug\moc_mainwindow.o debug\moc_dialog.o
+	-$(DEL_FILE) debug\logo_res.o
 
 distclean: clean 
 	-$(DEL_FILE) $(DESTDIR_TARGET)
@@ -113,12 +123,13 @@ compiler_rcc_make_all: debug/qrc_resource.cpp
 compiler_rcc_clean:
 	-$(DEL_FILE) debug\qrc_resource.cpp
 debug/qrc_resource.cpp: resource.qrc \
-		stylesheet.qss
+		stylesheet.qss \
+		image/pkq.ico
 	E:\QTSoftware\5.4\mingw491_32\bin\rcc.exe -name resource resource.qrc -o debug\qrc_resource.cpp
 
-compiler_moc_header_make_all: debug/moc_mainwindow.cpp
+compiler_moc_header_make_all: debug/moc_mainwindow.cpp debug/moc_dialog.cpp
 compiler_moc_header_clean:
-	-$(DEL_FILE) debug\moc_mainwindow.cpp
+	-$(DEL_FILE) debug\moc_mainwindow.cpp debug\moc_dialog.cpp
 debug/moc_mainwindow.cpp: ../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QMainWindow \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qmainwindow.h \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qwidget.h \
@@ -242,16 +253,128 @@ debug/moc_mainwindow.cpp: ../../../../QTSoftware/5.4/mingw491_32/include/QtWidge
 		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/QDateTime \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/QClipboard \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qclipboard.h \
+		dialog.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QDialog \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qdialog.h \
 		mainwindow.h
 	E:\QTSoftware\5.4\mingw491_32\bin\moc.exe $(DEFINES) -D__GNUC__ -DWIN32 -IE:/QTSoftware/5.4/mingw491_32/mkspecs/win32-g++ -IE:/qt/work/SerialMac/Mac -IE:/QTSoftware/5.4/mingw491_32/include -IE:/QTSoftware/5.4/mingw491_32/include/QtWidgets -IE:/QTSoftware/5.4/mingw491_32/include/QtGui -IE:/QTSoftware/5.4/mingw491_32/include/QtCore mainwindow.h -o debug\moc_mainwindow.cpp
 
+debug/moc_dialog.cpp: ../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QDialog \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qdialog.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qwidget.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qwindowdefs.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qglobal.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qconfig.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qfeatures.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qsystemdetection.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qprocessordetection.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qcompilerdetection.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qtypeinfo.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qtypetraits.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qsysinfo.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qlogging.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qflags.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qbasicatomic.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_bootstrap.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qgenericatomic.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_msvc.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_armv7.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_armv6.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_armv5.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_ia64.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_mips.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_x86.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_cxx11.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_gcc.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_unix.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qglobalstatic.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qmutex.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qnumeric.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qobjectdefs.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qnamespace.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qobjectdefs_impl.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qwindowdefs_win.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qobject.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qstring.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qchar.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qbytearray.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qrefcount.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qarraydata.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qstringbuilder.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qlist.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qalgorithms.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qiterator.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qbytearraylist.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qcoreevent.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qscopedpointer.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qmetatype.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qvarlengtharray.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qcontainerfwd.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qisenum.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qobject_impl.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qmargins.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpaintdevice.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qrect.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qsize.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qpoint.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpalette.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qcolor.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qrgb.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qstringlist.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qdatastream.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qiodevice.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qpair.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qregexp.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qstringmatcher.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qbrush.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qvector.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qmatrix.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpolygon.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qregion.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qline.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qtransform.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpainterpath.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qimage.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpixelformat.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpixmap.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qsharedpointer.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qshareddata.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qhash.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qsharedpointer_impl.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qfont.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qfontmetrics.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qfontinfo.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qsizepolicy.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qcursor.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qkeysequence.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qevent.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qvariant.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qmap.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qdebug.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qtextstream.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qlocale.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qset.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qcontiguouscache.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qurl.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qurlquery.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qfile.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qfiledevice.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qvector2d.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qtouchdevice.h \
+		dialog.h
+	E:\QTSoftware\5.4\mingw491_32\bin\moc.exe $(DEFINES) -D__GNUC__ -DWIN32 -IE:/QTSoftware/5.4/mingw491_32/mkspecs/win32-g++ -IE:/qt/work/SerialMac/Mac -IE:/QTSoftware/5.4/mingw491_32/include -IE:/QTSoftware/5.4/mingw491_32/include/QtWidgets -IE:/QTSoftware/5.4/mingw491_32/include/QtGui -IE:/QTSoftware/5.4/mingw491_32/include/QtCore dialog.h -o debug\moc_dialog.cpp
+
 compiler_moc_source_make_all:
 compiler_moc_source_clean:
-compiler_uic_make_all: ui_mainwindow.h
+compiler_uic_make_all: ui_mainwindow.h ui_dialog.h
 compiler_uic_clean:
-	-$(DEL_FILE) ui_mainwindow.h
+	-$(DEL_FILE) ui_mainwindow.h ui_dialog.h
 ui_mainwindow.h: mainwindow.ui
 	E:\QTSoftware\5.4\mingw491_32\bin\uic.exe mainwindow.ui -o ui_mainwindow.h
+
+ui_dialog.h: dialog.ui
+	E:\QTSoftware\5.4\mingw491_32\bin\uic.exe dialog.ui -o ui_dialog.h
 
 compiler_yacc_decl_make_all:
 compiler_yacc_decl_clean:
@@ -389,6 +512,9 @@ debug/main.o: main.cpp mainwindow.h \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/QDateTime \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/QClipboard \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qclipboard.h \
+		dialog.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QDialog \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qdialog.h \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QApplication \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qapplication.h \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qcoreapplication.h \
@@ -522,6 +648,9 @@ debug/mainwindow.o: mainwindow.cpp mainwindow.h \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/QDateTime \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/QClipboard \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qclipboard.h \
+		dialog.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QDialog \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qdialog.h \
 		ui_mainwindow.h \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/QVariant \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QAction \
@@ -645,11 +774,156 @@ debug/toolutils.o: toolutils.cpp toolutils.h \
 		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qclipboard.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\toolutils.o toolutils.cpp
 
+debug/dialog.o: dialog.cpp dialog.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QDialog \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qdialog.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qwidget.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qwindowdefs.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qglobal.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qconfig.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qfeatures.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qsystemdetection.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qprocessordetection.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qcompilerdetection.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qtypeinfo.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qtypetraits.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qsysinfo.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qlogging.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qflags.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qbasicatomic.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_bootstrap.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qgenericatomic.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_msvc.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_armv7.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_armv6.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_armv5.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_ia64.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_mips.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_x86.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_cxx11.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_gcc.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qatomic_unix.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qglobalstatic.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qmutex.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qnumeric.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qobjectdefs.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qnamespace.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qobjectdefs_impl.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qwindowdefs_win.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qobject.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qstring.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qchar.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qbytearray.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qrefcount.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qarraydata.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qstringbuilder.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qlist.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qalgorithms.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qiterator.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qbytearraylist.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qcoreevent.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qscopedpointer.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qmetatype.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qvarlengtharray.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qcontainerfwd.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qisenum.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qobject_impl.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qmargins.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpaintdevice.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qrect.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qsize.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qpoint.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpalette.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qcolor.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qrgb.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qstringlist.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qdatastream.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qiodevice.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qpair.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qregexp.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qstringmatcher.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qbrush.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qvector.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qmatrix.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpolygon.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qregion.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qline.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qtransform.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpainterpath.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qimage.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpixelformat.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qpixmap.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qsharedpointer.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qshareddata.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qhash.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qsharedpointer_impl.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qfont.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qfontmetrics.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qfontinfo.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qsizepolicy.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qcursor.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qkeysequence.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qevent.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qvariant.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qmap.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qdebug.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qtextstream.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qlocale.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qset.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qcontiguouscache.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qurl.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qurlquery.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qfile.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qfiledevice.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qvector2d.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qtouchdevice.h \
+		ui_dialog.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/QVariant \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QAction \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qaction.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qicon.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qactiongroup.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QApplication \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qapplication.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qcoreapplication.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qeventloop.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qdesktopwidget.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qguiapplication.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qinputmethod.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QButtonGroup \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qbuttongroup.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QHeaderView \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qheaderview.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qabstractitemview.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qabstractscrollarea.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qframe.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qabstractitemmodel.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qitemselectionmodel.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qabstractitemdelegate.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qstyleoption.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qabstractspinbox.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtGui/qvalidator.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtCore/qregularexpression.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qslider.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qabstractslider.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qstyle.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qtabbar.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qtabwidget.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qrubberband.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/QPushButton \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qpushbutton.h \
+		../../../../QTSoftware/5.4/mingw491_32/include/QtWidgets/qabstractbutton.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\dialog.o dialog.cpp
+
 debug/qrc_resource.o: debug/qrc_resource.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\qrc_resource.o debug\qrc_resource.cpp
 
 debug/moc_mainwindow.o: debug/moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\moc_mainwindow.o debug\moc_mainwindow.cpp
+
+debug/moc_dialog.o: debug/moc_dialog.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\moc_dialog.o debug\moc_dialog.cpp
 
 ####### Install
 

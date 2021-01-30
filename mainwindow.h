@@ -8,6 +8,7 @@
 #include <QDir>
 #include "toolutils.h"
 #include <QDebug>
+#include "dialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -43,6 +44,8 @@ private slots:
     void get_datetime_action();
     void get_serial_action();
     void get_w2l_action();
+
+    void on_pushButton_clicked();
 
 private:
     Ui::MainWindow *ui;
