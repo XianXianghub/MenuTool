@@ -23,3 +23,6 @@ FORMS    += mainwindow.ui
 
 DISTFILES += \
     SystemTrayIconForm.ui.qml
+
+RESOURCES += \
+    resource.qrc

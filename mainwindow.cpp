@@ -31,13 +31,20 @@ void MainWindow::CreatTrayMenu()
     this->connect(quitAction,SIGNAL(triggered()),qApp,SLOT(quit()));
 
     myMenu = new QMenu((QWidget*)QApplication::desktop());
-    myMenu->setStyleSheet("QMenu::item{ padding:5px;}");
+  //  myMenu->setStyleSheet("QMenu::item{ padding:5px;}");
     myMenu->addAction(getDateAction);
     myMenu->addAction(getMacAction);
     myMenu->addAction(getSerialAction);
     myMenu->addAction(w2lAction);
     myMenu->addSeparator();     //加入一个分离符
     myMenu->addAction(quitAction);
+    QFile qss("stylesheet.qss");
+    if(qss.open(QFile::ReadOnly))
+    {
+       QString style = QLatin1String(qss.readAll());
+       myMenu->setStyleSheet(style);
+       qss.close();
+    }
 }
 
 void MainWindow::CreatTrayIcon()
