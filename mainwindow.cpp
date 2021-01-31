@@ -10,6 +10,18 @@ MainWindow::MainWindow(QWidget *parent) :
      CreatTrayIcon();
      QClipboard *clipboard = QApplication::clipboard();   //获取系统剪贴板指针
      tool= new ToolUtils(clipboard);
+     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
+     if(shortcut->setShortcut(QKeySequence("F2")))
+     {
+
+        connect(shortcut, SIGNAL(activated()), this, SLOT(hotkey_press_action()));
+
+     }
+     else
+     {
+         qDebug()<<"快捷键已占用";
+         QMessageBox::information(NULL, "Title", "快捷键已占用", QMessageBox::Yes, QMessageBox::Yes);
+     }
 
 }
 
@@ -29,7 +41,8 @@ void MainWindow::CreatTrayMenu()
     this->connect(getMacAction,SIGNAL(triggered()),this,SLOT(get_mac_action()));
     this->connect(getSerialAction,SIGNAL(triggered()),this,SLOT(get_serial_action()));
     this->connect(w2lAction,SIGNAL(triggered()),this,SLOT(get_w2l_action()));
-    this->connect(quitAction,SIGNAL(triggered()),qApp,SLOT(quit()));
+
+      this->connect(quitAction,SIGNAL(triggered()),this,SLOT(quit_action()));
 
     myMenu = new QMenu((QWidget*)QApplication::desktop());
   //  myMenu->setStyleSheet("QMenu::item{ padding:5px;}");
@@ -58,7 +71,6 @@ void MainWindow::CreatTrayIcon()
     }
 
     myTrayIcon = new QSystemTrayIcon(this);
-
     myTrayIcon->setIcon(QIcon(":/image/pkq.ico"));   //设置图标图片
     setWindowIcon(QIcon(":/image/pkq.ico"));  //把图片设置到窗口上
 
@@ -73,12 +85,12 @@ void MainWindow::CreatTrayIcon()
 
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
 {
+    isQuit = true;
     switch(reason)
     {
     case QSystemTrayIcon::Trigger:
 
     case QSystemTrayIcon::DoubleClick:
-        showNormal();
         break;
     case QSystemTrayIcon::MiddleClick:
         myTrayIcon->showMessage("tips","SystemTray",QSystemTrayIcon::Information,500);
@@ -131,8 +143,22 @@ void MainWindow::get_w2l_action()
     tool->setClip(path);
 }
 
+void MainWindow::quit_action()
+{
+    if(isQuit)
+    qApp->quit();
+    else
+      myMenu->hide();
+ //   this->close();
+}
+
+void MainWindow::hotkey_press_action()
+{
+  isQuit = false;
+  myMenu->exec(QCursor::pos());
+}
+
 void MainWindow::on_pushButton_clicked()
 {
-    Dialog d;
-    d.show();
+   qDebug()<<"on_pushButton_clicked";
 }

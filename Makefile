@@ -161,6 +161,7 @@ Makefile: Mac.pro ../../../../QTSoftware/5.4/mingw491_32/mkspecs/win32-g++/qmake
 		../../../../QTSoftware/5.4/mingw491_32/mkspecs/features/exclusive_builds.prf \
 		../../../../QTSoftware/5.4/mingw491_32/mkspecs/features/default_pre.prf \
 		../../../../QTSoftware/5.4/mingw491_32/mkspecs/features/win32/default_pre.prf \
+		qxtglobalshortcut5-master/qxt.pri \
 		../../../../QTSoftware/5.4/mingw491_32/mkspecs/features/resolve_config.prf \
 		../../../../QTSoftware/5.4/mingw491_32/mkspecs/features/exclusive_builds_post.prf \
 		../../../../QTSoftware/5.4/mingw491_32/mkspecs/features/default_post.prf \
@@ -182,6 +183,7 @@ Makefile: Mac.pro ../../../../QTSoftware/5.4/mingw491_32/mkspecs/win32-g++/qmake
 		E:/QTSoftware/5.4/mingw491_32/lib/Qt5Cored.prl \
 		E:/QTSoftware/5.4/mingw491_32/lib/Qt5Widgets.prl \
 		E:/QTSoftware/5.4/mingw491_32/lib/Qt5Gui.prl \
+		E:/QTSoftware/5.4/mingw491_32/lib/Qt5Network.prl \
 		E:/QTSoftware/5.4/mingw491_32/lib/Qt5Core.prl
 	$(QMAKE) -spec win32-g++ CONFIG+=debug -o Makefile Mac.pro
 ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\spec_pre.prf:
@@ -286,6 +288,7 @@ Makefile: Mac.pro ../../../../QTSoftware/5.4/mingw491_32/mkspecs/win32-g++/qmake
 ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\exclusive_builds.prf:
 ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\default_pre.prf:
 ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\win32\default_pre.prf:
+qxtglobalshortcut5-master\qxt.pri:
 ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\resolve_config.prf:
 ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\exclusive_builds_post.prf:
 ..\..\..\..\QTSoftware\5.4\mingw491_32\mkspecs\features\default_post.prf:
@@ -307,6 +310,7 @@ E:/QTSoftware/5.4/mingw491_32/lib/qtmaind.prl:
 E:/QTSoftware/5.4/mingw491_32/lib/Qt5Cored.prl:
 E:/QTSoftware/5.4/mingw491_32/lib/Qt5Widgets.prl:
 E:/QTSoftware/5.4/mingw491_32/lib/Qt5Gui.prl:
+E:/QTSoftware/5.4/mingw491_32/lib/Qt5Network.prl:
 E:/QTSoftware/5.4/mingw491_32/lib/Qt5Core.prl:
 qmake: FORCE
 	@$(QMAKE) -spec win32-g++ CONFIG+=debug -o Makefile Mac.pro

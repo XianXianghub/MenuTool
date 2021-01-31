@@ -1,0 +1,15 @@
+INPUT(
+./debug\qxtglobal.o
+./debug\qxtwindowsystem.o
+./debug\qxtglobalshortcut.o
+./debug\qxtwindowsystem_win.o
+./debug\qxtglobalshortcut_win.o
+./debug\main.o
+./debug\mainwindow.o
+./debug\toolutils.o
+./debug\dialog.o
+./debug\qrc_resource.o
+./debug\moc_qxtglobalshortcut.o
+./debug\moc_mainwindow.o
+./debug\moc_dialog.o
+);

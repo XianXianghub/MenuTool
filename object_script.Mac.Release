@@ -1,0 +1,15 @@
+INPUT(
+./release\qxtglobal.o
+./release\qxtwindowsystem.o
+./release\qxtglobalshortcut.o
+./release\qxtwindowsystem_win.o
+./release\qxtglobalshortcut_win.o
+./release\main.o
+./release\mainwindow.o
+./release\toolutils.o
+./release\dialog.o
+./release\qrc_resource.o
+./release\moc_qxtglobalshortcut.o
+./release\moc_mainwindow.o
+./release\moc_dialog.o
+);

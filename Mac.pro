@@ -10,6 +10,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = Mac
 TEMPLATE = app
+include(qxtglobalshortcut5-master/qxt.pri)
 
 
 SOURCES += main.cpp\
