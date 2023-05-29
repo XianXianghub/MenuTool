@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
      QClipboard *clipboard = QApplication::clipboard();   //获取系统剪贴板指针
      tool= new ToolUtils(clipboard);
      QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
-     if(shortcut->setShortcut(QKeySequence("F2")))
+     if(shortcut->setShortcut(QKeySequence("F1")))
      {
 
         connect(shortcut, SIGNAL(activated()), this, SLOT(hotkey_press_action()));
@@ -47,8 +47,8 @@ void MainWindow::CreatTrayMenu()
     myMenu = new QMenu((QWidget*)QApplication::desktop());
   //  myMenu->setStyleSheet("QMenu::item{ padding:5px;}");
     myMenu->addAction(getDateAction);
-    myMenu->addAction(getMacAction);
-    myMenu->addAction(getSerialAction);
+//    myMenu->addAction(getMacAction);
+//    myMenu->addAction(getSerialAction);
     myMenu->addAction(w2lAction);
     myMenu->addSeparator();     //加入一个分离符
     myMenu->addAction(quitAction);
@@ -145,11 +145,8 @@ void MainWindow::get_w2l_action()
 
 void MainWindow::quit_action()
 {
-    if(isQuit)
-    qApp->quit();
-    else
-      myMenu->hide();
- //   this->close();
+    if(isQuit)qApp->quit();
+    else myMenu->hide();
 }
 
 void MainWindow::hotkey_press_action()
