@@ -22,6 +22,10 @@ MainWindow::MainWindow(QWidget *parent) :
          qDebug()<<"快捷键已占用";
          QMessageBox::information(NULL, "Title", "快捷键已占用", QMessageBox::Yes, QMessageBox::Yes);
      }
+     socket = new QTcpSocket();
+     server = new QTcpServer();
+     connect(server, &QTcpServer::newConnection, this, &MainWindow::server_New_Connect);
+     server->listen(QHostAddress::LocalHost, 5055 );
 
 }
 
@@ -157,5 +161,57 @@ void MainWindow::hotkey_press_action()
 
 void MainWindow::on_pushButton_clicked()
 {
-   qDebug()<<"on_pushButton_clicked";
+    qDebug()<<"on_pushButton_clicked";
+}
+
+void MainWindow::server_New_Connect()
+{
+    // 获取客户端连接
+        socket = server->nextPendingConnection();
+        clientSocket.append(socket);
+
+
+        // 连接QTcpSocket的信号槽，以读取新数据
+        connect(socket, SIGNAL(readyRead()), this, SLOT(Read_Data()));
+        connect(socket, SIGNAL(disconnected()), this, SLOT(disConnected()));
+
+}
+
+void MainWindow::Read_Data()
+{
+    // 由于readyRead信号并未提供SocketDecriptor，所以需要遍历所有客户端
+        for (int i = 0; i < clientSocket.length(); ++i) {
+            // 读取缓冲区数据
+            QByteArray buffer = clientSocket[i]->readAll();
+            if(buffer.isEmpty()) {
+                continue;
+            }
+
+            static QString IP_Port, IP_Port_Pre;
+            IP_Port = tr("[%1:%2]:").arg(clientSocket[i]->peerAddress().toString().mid(7)).arg(clientSocket[i]->peerPort());
+
+            // 若此次消息的地址与上次不同，则需显示此次消息的客户端地址
+//            if (IP_Port != IP_Port_Pre) {
+//                ui->textEdit_Recv->append(IP_Port);
+//            }
+
+            qDebug()<<"buffer=="<<buffer;
+
+            // 更新ip_port
+            IP_Port_Pre = IP_Port;
+        }
+}
+
+void MainWindow::disConnected()
+{
+    // 遍历寻找断开连接的是哪一个客户端
+       for(int i = 0; i < clientSocket.length(); ++i) {
+           if(clientSocket[i]->state() == QAbstractSocket::UnconnectedState)
+           {
+
+               // 删除存储在clientSocket列表中的客户端信息
+               clientSocket[i]->destroyed();
+               clientSocket.removeAt(i);
+           }
+       }
 }

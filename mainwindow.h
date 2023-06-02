@@ -13,6 +13,12 @@
 #include <QMessageBox>
 #include <QScreen>
 
+#include <QTcpserver>
+#include <QTcpSocket>
+#include <QNetworkInterface>
+
+
+
 namespace Ui {
 class MainWindow;
 }
@@ -52,9 +58,20 @@ private slots:
 
     void on_pushButton_clicked();
 
+    void server_New_Connect();
+
+    void Read_Data();
+
+    void disConnected();
+
 private:
     Ui::MainWindow *ui;
     bool isQuit = false;
+    QTcpSocket *socket;
+     QTcpServer *server;
+
+     QList<QTcpSocket*> clientSocket;
+
 };
 
 #endif // MAINWINDOW_H
