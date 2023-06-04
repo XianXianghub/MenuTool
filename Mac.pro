@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui network
+QT       += core gui network xml
 RC_FILE = logo.rc
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -16,11 +16,14 @@ include(qxtglobalshortcut5-master/qxt.pri)
 SOURCES += main.cpp\
         mainwindow.cpp \
     toolutils.cpp \
-    dialog.cpp
+    dialog.cpp \
+    xmlutils.cpp
 
 HEADERS  += mainwindow.h \
     toolutils.h \
-    dialog.h
+    dialog.h \
+    xmlutils.h \
+    constlist.h
 
 FORMS    += mainwindow.ui \
     dialog.ui

@@ -12,11 +12,13 @@
 #include "qxtglobalshortcut.h"
 #include <QMessageBox>
 #include <QScreen>
+#include "constlist.h"
 
 #include <QTcpserver>
 #include <QTcpSocket>
 #include <QNetworkInterface>
-
+#include <QString>
+#include <QHash>
 
 
 namespace Ui {
@@ -33,6 +35,7 @@ public:
 
     void CreatTrayMenu();
     void CreatTrayIcon();
+    void proccessData(QString data);
 
     QSystemTrayIcon *myTrayIcon;
 
@@ -48,10 +51,7 @@ protected:
     void closeEvent(QCloseEvent *event);
 private slots:
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
-
-    void get_mac_action();
     void get_datetime_action();
-    void get_serial_action();
     void get_w2l_action();
     void quit_action();
     void hotkey_press_action();
@@ -70,7 +70,11 @@ private:
     QTcpSocket *socket;
      QTcpServer *server;
 
-     QList<QTcpSocket*> clientSocket;
+    QHash<QString , QTcpSocket*> qhash;
+
+    QList<QTcpSocket*> clientSocket;
+    QString xshell_ip = "";
+    QString vscode_ip = "";
 
 };
 

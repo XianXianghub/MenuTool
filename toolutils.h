@@ -9,6 +9,11 @@
 #include <QDateTime>
 #include <QClipboard>
 
+
+#define OPENDIR 0;
+#define TRANS_MSG_TO_VS 1;
+
+
 class ToolUtils{
 
 public:
@@ -18,5 +23,6 @@ public:
     QString getfromClip();
     void setClip(QString str);
 private:
-QClipboard *clipboard ;
+    QClipboard *clipboard ;
+
 };

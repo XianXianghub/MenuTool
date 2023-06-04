@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent) :
      QClipboard *clipboard = QApplication::clipboard();   //获取系统剪贴板指针
      tool= new ToolUtils(clipboard);
      QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
-     if(shortcut->setShortcut(QKeySequence("F1")))
+     if(shortcut->setShortcut(QKeySequence("F2")))
      {
 
         connect(shortcut, SIGNAL(activated()), this, SLOT(hotkey_press_action()));
@@ -42,8 +42,6 @@ void MainWindow::CreatTrayMenu()
     quitAction = new QAction("Quit(&Q)",this);
 
     this->connect(getDateAction,SIGNAL(triggered()),this,SLOT(get_datetime_action()));
-    this->connect(getMacAction,SIGNAL(triggered()),this,SLOT(get_mac_action()));
-    this->connect(getSerialAction,SIGNAL(triggered()),this,SLOT(get_serial_action()));
     this->connect(w2lAction,SIGNAL(triggered()),this,SLOT(get_w2l_action()));
 
       this->connect(quitAction,SIGNAL(triggered()),this,SLOT(quit_action()));
@@ -87,6 +85,14 @@ void MainWindow::CreatTrayIcon()
     this->connect(myTrayIcon,SIGNAL(activated(QSystemTrayIcon::ActivationReason)),this,SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
 }
 
+void MainWindow::proccessData(QString data)
+{
+    QStringList list = data.split("&");
+    if(list.size() > 1){
+
+    }
+}
+
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     isQuit = true;
@@ -118,16 +124,6 @@ void MainWindow::closeEvent(QCloseEvent *event)
 }
 
 
-void MainWindow::get_mac_action()
-{
-      QString originalText  =  tool->getfromClip().trimmed();
-      qDebug()<<"originalText.length()=="<<originalText.length();
-      if(originalText.length() == 32){
-          QString cmd = tool->TrasAmlMac(originalText);
-          tool->setClip(cmd);
-          myTrayIcon->showMessage("tips","已经获取到Mac",QSystemTrayIcon::Information,500);
-      }
-}
 
 void MainWindow::get_datetime_action()
 {
@@ -135,10 +131,7 @@ void MainWindow::get_datetime_action()
     tool->setClip(time);
 }
 
-void MainWindow::get_serial_action()
-{
-    tool->setClip("005003000018146000010019F0FFFE74");
-}
+
 
 void MainWindow::get_w2l_action()
 {
@@ -167,48 +160,54 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::server_New_Connect()
 {
     // 获取客户端连接
-        socket = server->nextPendingConnection();
-        clientSocket.append(socket);
-
-
-        // 连接QTcpSocket的信号槽，以读取新数据
-        connect(socket, SIGNAL(readyRead()), this, SLOT(Read_Data()));
-        connect(socket, SIGNAL(disconnected()), this, SLOT(disConnected()));
-
+    socket = server->nextPendingConnection();
+    clientSocket.append(socket);
+    connect(socket, SIGNAL(readyRead()), this, SLOT(Read_Data()));
+    connect(socket, SIGNAL(disconnected()), this, SLOT(disConnected()));
 }
 
 void MainWindow::Read_Data()
 {
     // 由于readyRead信号并未提供SocketDecriptor，所以需要遍历所有客户端
-        for (int i = 0; i < clientSocket.length(); ++i) {
-            // 读取缓冲区数据
-            QByteArray buffer = clientSocket[i]->readAll();
-            if(buffer.isEmpty()) {
-                continue;
-            }
-
-            static QString IP_Port, IP_Port_Pre;
-            IP_Port = tr("[%1:%2]:").arg(clientSocket[i]->peerAddress().toString().mid(7)).arg(clientSocket[i]->peerPort());
-
-            // 若此次消息的地址与上次不同，则需显示此次消息的客户端地址
-//            if (IP_Port != IP_Port_Pre) {
-//                ui->textEdit_Recv->append(IP_Port);
-//            }
-
-            qDebug()<<"buffer=="<<buffer;
-
-            // 更新ip_port
-            IP_Port_Pre = IP_Port;
+    for (int i = 0; i < clientSocket.length(); ++i) {
+        // 读取缓冲区数据
+        QByteArray buffer = clientSocket[i]->readAll();
+        if(buffer.isEmpty()) {
+            continue;
         }
+
+        static QString IP_Port, IP_Port_Pre;
+        IP_Port = tr("[%1:%2]:").arg(clientSocket[i]->peerAddress().toString().mid(7)).arg(clientSocket[i]->peerPort());
+        QString data = buffer;
+
+        if(QString::compare(data, XSHELL_IP_INDEX) == 0){
+            xshell_ip = IP_Port;
+            qhash.insert(XSHELL_IP_INDEX, clientSocket[i]);
+        }else if(QString::compare(data, VSCODE_IP_INDEX) == 0){
+            vscode_ip = IP_Port;
+            qhash.insert(VSCODE_IP_INDEX, clientSocket[i]);
+        }else{
+            proccessData(data);
+        }
+
+        qDebug()<<"buffer=="<<buffer;
+        qDebug()<<"IP_Port=="<<IP_Port;
+    }
 }
 
 void MainWindow::disConnected()
 {
+      qDebug()<<"disConnected==";
     // 遍历寻找断开连接的是哪一个客户端
        for(int i = 0; i < clientSocket.length(); ++i) {
            if(clientSocket[i]->state() == QAbstractSocket::UnconnectedState)
            {
-
+               QString ipport = tr("[%1:%2]:").arg(clientSocket[i]->peerAddress().toString().mid(7)).arg(clientSocket[i]->peerPort());
+               if(QString::compare(ipport, xshell_ip) == 0){
+                    qhash.remove(XSHELL_IP_INDEX);
+               }else if(QString::compare(ipport, vscode_ip) == 0){
+                    qhash.remove(VSCODE_IP_INDEX);
+               }
                // 删除存储在clientSocket列表中的客户端信息
                clientSocket[i]->destroyed();
                clientSocket.removeAt(i);
