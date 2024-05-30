@@ -17,13 +17,15 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     toolutils.cpp \
     dialog.cpp \
-    xmlutils.cpp
+    xmlutils.cpp \
+    logger.cpp
 
 HEADERS  += mainwindow.h \
     toolutils.h \
     dialog.h \
     xmlutils.h \
-    constlist.h
+    constlist.h \
+    logger.h
 
 FORMS    += mainwindow.ui \
     dialog.ui

@@ -19,6 +19,7 @@
 #include <QNetworkInterface>
 #include <QString>
 #include <QHash>
+#include <QProcess>
 
 
 namespace Ui {
@@ -42,6 +43,7 @@ public:
     QMenu *myMenu;
 
     QAction *getDateAction;
+    QAction *getCommentAction;
     QAction *getMacAction;
     QAction *getSerialAction;
     QAction *quitAction;
@@ -52,6 +54,7 @@ protected:
 private slots:
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
     void get_datetime_action();
+    void get_CommentAction();
     void get_w2l_action();
     void quit_action();
     void hotkey_press_action();

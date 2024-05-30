@@ -15,38 +15,38 @@ XmlUtils::~XmlUtils()
 void XmlUtils::WriteXml()
 {
        //打开或创建文件
-       QFile file(path); //相对路径、绝对路径、资源路径都可以
-       if(!file.open(QFile::WriteOnly|QFile::Truncate)) //可以用QIODevice，Truncate表示清空原来的内容
-           return;
+//       QFile file(path); //相对路径、绝对路径、资源路径都可以
+//       if(!file.open(QFile::WriteOnly|QFile::Truncate)) //可以用QIODevice，Truncate表示清空原来的内容
+//           return;
 
-       QDomDocument doc;
-       //写入xml头部
-       QDomProcessingInstruction instruction; //添加处理命令
-       instruction=doc.createProcessingInstruction("xml","version=\"1.0\" encoding=\"UTF-8\"");
-       doc.appendChild(instruction);
+//       QDomDocument doc;
+//       //写入xml头部
+//       QDomProcessingInstruction instruction; //添加处理命令
+//       instruction=doc.createProcessingInstruction("xml","version=\"1.0\" encoding=\"UTF-8\"");
+//       doc.appendChild(instruction);
 
-       //根节点
-       QDomElement root=doc.createElement("config");
-       doc.appendChild(root);
+//       //根节点
+//       QDomElement root=doc.createElement("config");
+//       doc.appendChild(root);
 
-       QDomText text;
-       //添加元素listenpath
-       text=doc.createTextNode("D:/");
-       QDomElement listenpath=doc.createElement(LISTENPATH); //创建子元素
-       listenpath.appendChild(text);
-       root.appendChild(listenpath);
+//       QDomText text;
+//       //添加元素listenpath
+//       text=doc.createTextNode("D:/");
+//       QDomElement listenpath=doc.createElement(LISTENPATH); //创建子元素
+//       listenpath.appendChild(text);
+//       root.appendChild(listenpath);
 
 
-       //添加元素cmdpath
-       text=doc.createTextNode("D:/");
-       QDomElement cmdpath=doc.createElement(CMDPATH); //创建子元素
-       cmdpath.appendChild(text);
-       root.appendChild(cmdpath);
+//       //添加元素cmdpath
+//       text=doc.createTextNode("D:/");
+//       QDomElement cmdpath=doc.createElement(CMDPATH); //创建子元素
+//       cmdpath.appendChild(text);
+//       root.appendChild(cmdpath);
 
-       //输出到文件
-       QTextStream out_stream(&file);
-       doc.save(out_stream,4); //缩进4格
-       file.close();
+//       //输出到文件
+//       QTextStream out_stream(&file);
+//       doc.save(out_stream,4); //缩进4格
+//       file.close();
 }
 
 QString XmlUtils::ReadXml(QString key)
