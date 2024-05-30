@@ -3,22 +3,17 @@
 
 #include <QFile>
 #include <QTextStream>
-#include <QDateTime>
-#include <QDir>
-#include <QDebug>
+#include <QString>
 
 class Logger
 {
 public:
     Logger();
     ~Logger();
-
     void log(const QString &message);
 
 private:
-    QFile *logFile;
-    QTextStream *logStream;
-    void createLogFile();
+    QFile logFile;
 };
 
 #endif // LOGGER_H

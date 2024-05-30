@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <QScreen>
 #include "constlist.h"
+#include "logger.h"
 
 #include <QTcpserver>
 #include <QTcpSocket>
@@ -72,6 +73,7 @@ private:
     bool isQuit = false;
     QTcpSocket *socket;
      QTcpServer *server;
+     Logger *logger; // Add a Logger instance
 
     QHash<QString , QTcpSocket*> qhash;
 
