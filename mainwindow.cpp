@@ -26,8 +26,50 @@ MainWindow::MainWindow(QWidget *parent) :
      server = new QTcpServer();
      connect(server, &QTcpServer::newConnection, this, &MainWindow::server_New_Connect);
      server->listen(QHostAddress::LocalHost, 5055 );
+     client = new QMQTT::Client(QHostAddress("43.248.117.189"),5285);
+     client->setClientId("clientid");
+     client->setUsername("meferi");
+     client->setPassword("meferi");
+
+     connect(client,SIGNAL(connected()),this,SLOT(doConnected()));
+     connect(client,SIGNAL(disconnected()),this,SLOT(doDisconnected()));
+     connect(client,SIGNAL(received(QMQTT::Message)),this,SLOT(doDataReceived(QMQTT::Message)));
+     if(!client->isConnectedToHost())
+     {
+         client->connectToHost();
+     }
+     else {
+         client->disconnectFromHost();
+     }
 
 }
+
+
+void MainWindow::doConnected()
+ {
+     qDebug()<<"doConnected";
+     client->subscribe("testtopic/pc/master", 0);
+//     ui->rb_status->setChecked(true);
+//     ui->pb_connect->setText("Disconnect");
+//     ui->pushButton->setEnabled(true);
+//     ui->pushButton_2->setEnabled(true);
+ }
+
+ void MainWindow::doDisconnected()
+ {
+     qDebug()<<"doDisconnected";
+//     ui->rb_status->setChecked(false);
+//     ui->pb_connect->setText("Connect");
+//     ui->pushButton->setEnabled(false);
+//     ui->pushButton_2->setEnabled(false);
+ }
+
+ void MainWindow::doDataReceived(Message message)
+ {
+     QString mes = QString(message.id())+" "+QString(message.qos())+" "+message.topic()+" "+message.payload()+"\n";
+     qDebug()<< "publish received: \"" << QString::fromUtf8(message.payload()) << "\"" << endl;
+      qDebug()<<mes;
+ }
 
 MainWindow::~MainWindow()
 {

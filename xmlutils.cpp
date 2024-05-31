@@ -31,17 +31,17 @@ void XmlUtils::WriteXml()
 
        QDomText text;
        //添加元素listenpath
-       text=doc.createTextNode("D:/");
-       QDomElement listenpath=doc.createElement(LISTENPATH); //创建子元素
-       listenpath.appendChild(text);
-       root.appendChild(listenpath);
+//       text=doc.createTextNode("D:/");
+//       QDomElement listenpath=doc.createElement(LISTENPATH); //创建子元素
+//       listenpath.appendChild(text);
+//       root.appendChild(listenpath);
 
 
        //添加元素cmdpath
-       text=doc.createTextNode("D:/");
-       QDomElement cmdpath=doc.createElement(CMDPATH); //创建子元素
-       cmdpath.appendChild(text);
-       root.appendChild(cmdpath);
+//       text=doc.createTextNode("D:/");
+//       QDomElement cmdpath=doc.createElement(CMDPATH); //创建子元素
+//       cmdpath.appendChild(text);
+//       root.appendChild(cmdpath);
 
        //输出到文件
        QTextStream out_stream(&file);

@@ -19,7 +19,8 @@
 #include <QNetworkInterface>
 #include <QString>
 #include <QHash>
-
+#include "qmqtt.h"
+using namespace QMQTT;
 
 namespace Ui {
 class MainWindow;
@@ -64,11 +65,17 @@ private slots:
 
     void disConnected();
 
+
+    void doConnected();  //MQTT 连接成功
+       void doDisconnected();//MQTT连接断开
+       void doDataReceived(QMQTT::Message);//MQTT收到数据
+
 private:
     Ui::MainWindow *ui;
     bool isQuit = false;
     QTcpSocket *socket;
      QTcpServer *server;
+     QMQTT::Client *client; //MQTT客户端指针
 
     QHash<QString , QTcpSocket*> qhash;
 
