@@ -21,6 +21,8 @@
 #include <QString>
 #include <QHash>
 #include <QProcess>
+#include "SshTunnelConfigDialog.h"
+
 
 
 namespace Ui {
@@ -46,6 +48,8 @@ public:
     QAction *getDateAction;
     QAction *getCommentAction;
     QAction *getMacAction;
+    QAction *openSshConfigAction;
+
     QAction *getSerialAction;
     QAction *quitAction;
     QAction *w2lAction;
@@ -58,6 +62,8 @@ private slots:
     void get_CommentAction();
     void get_w2l_action();
     void quit_action();
+    void openSshConfigPage();
+
     void hotkey_press_action();
 
     void on_pushButton_clicked();

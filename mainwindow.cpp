@@ -1,6 +1,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -41,10 +48,14 @@ void MainWindow::CreatTrayMenu()
     getMacAction = new QAction("mac", this);
     getSerialAction = new QAction("serial", this);
     w2lAction = new QAction("w2l", this);
+    openSshConfigAction = new QAction("ssh", this);
+
     quitAction = new QAction("Quit(&Q)", this);
 
     this->connect(getDateAction, SIGNAL(triggered()), this, SLOT(get_datetime_action()));
     this->connect(w2lAction, SIGNAL(triggered()), this, SLOT(get_w2l_action()));
+    this->connect(openSshConfigAction, SIGNAL(triggered()), this, SLOT(openSshConfigPage()));
+
     this->connect(quitAction, SIGNAL(triggered()), this, SLOT(quit_action()));
     this->connect(getCommentAction, SIGNAL(triggered()), this, SLOT(get_CommentAction()));
 
@@ -52,6 +63,8 @@ void MainWindow::CreatTrayMenu()
     myMenu->addAction(getCommentAction);
     myMenu->addAction(getDateAction);
     myMenu->addAction(w2lAction);
+    myMenu->addAction(openSshConfigAction);
+
     myMenu->addSeparator();
     myMenu->addAction(quitAction);
 
@@ -201,6 +214,12 @@ void MainWindow::quit_action()
 {
     if(isQuit) qApp->quit();
     else myMenu->hide();
+}
+
+void MainWindow::openSshConfigPage()
+{
+    SshTunnelConfigDialog *dialog = new SshTunnelConfigDialog(this);
+    dialog->exec();
 }
 
 void MainWindow::hotkey_press_action()
