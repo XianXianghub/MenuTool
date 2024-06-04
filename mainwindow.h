@@ -77,10 +77,10 @@ private slots:
 private:
     Ui::MainWindow *ui;
     bool isQuit = false;
-    QTcpSocket *socket;
+    QTcpSocket *mQsocket;
      QTcpServer *server;
      Logger *logger; // Add a Logger instance
-
+QTcpSocket *SShsocket;
     QHash<QString , QTcpSocket*> qhash;
 
     QList<QTcpSocket*> clientSocket;

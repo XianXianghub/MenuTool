@@ -19,8 +19,7 @@ SOURCES += main.cpp\
     dialog.cpp \
     xmlutils.cpp \
     logger.cpp \
-    sshtunnelconfigdialog.cpp \
-    sshclient.cpp
+    sshtunnelconfigdialog.cpp
 
 HEADERS  += mainwindow.h \
     toolutils.h \
@@ -28,9 +27,7 @@ HEADERS  += mainwindow.h \
     xmlutils.h \
     constlist.h \
     logger.h \
-    sshtunnelconfigdialog.h \
-    sshclient.h
-
+    sshtunnelconfigdialog.h
 FORMS    += mainwindow.ui \
     dialog.ui \
     sshtunnelconfigdialog.ui
@@ -44,25 +41,15 @@ RESOURCES += \
 
 #LIBS += $$PWD/lib/libssh2.a
 
+LIBS += -L$$PWD/lib/ -llibssh2
+LIBS += -L$$PWD/lib/ -llibeay32
+LIBS += -L$$PWD/lib/ -lssleay32
+LIBS += -L$$PWD/lib/ -lzlib
 
-INCLUDEPATH += $$PWD/.
-DEPENDPATH += $$PWD/.
 
-unix:!macx: LIBS += -L$$PWD/lib/ -lssl
+#win32: LIBS += $$PWD/lib/libssh2.dll
 
-INCLUDEPATH += $$PWD/lib
-DEPENDPATH += $$PWD/lib
 
-unix:!macx: PRE_TARGETDEPS += $$PWD/lib/libssl.a
-
-unix:!macx: LIBS += -L$$PWD/lib/ -lssh2
-
-INCLUDEPATH += $$PWD/include
-DEPENDPATH += $$PWD/include
-
-unix:!macx: PRE_TARGETDEPS += $$PWD/lib/libssh2.a
-
-unix:!macx: LIBS += -L$$PWD/lib/ -lcrypto
 
 
 INCLUDEPATH += E:\qt\work\MenuTool\include

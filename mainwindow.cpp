@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <libssh2.h>
+
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -26,13 +28,59 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     else
     {
-        logger->log("快捷键已占用");
-        QMessageBox::information(NULL, "Title", "快捷键已占用", QMessageBox::Yes, QMessageBox::Yes);
+//        logger->log("1111快捷键已占用");
+//        QMessageBox::information(NULL, "Title", "1111快捷键已占用", QMessageBox::Yes, QMessageBox::Yes);
     }
-    socket = new QTcpSocket();
+    qDebug() << "2222";
+
+    mQsocket = new QTcpSocket();
     server = new QTcpServer();
     connect(server, &QTcpServer::newConnection, this, &MainWindow::server_New_Connect);
     server->listen(QHostAddress::LocalHost, 5055);
+    qDebug() << "1111";
+
+
+    unsigned long hostaddr;
+    struct sockaddr_in sin;
+    const char *fingerprint;
+    LIBSSH2_SESSION *session;
+    bool bR = false;
+    FILE *local;
+
+    int rc = libssh2_init(0);
+
+
+     SShsocket = new QTcpSocket();
+     SShsocket->connectToHost(QHostAddress("43.248.140.157"), 16127);
+     int sock = SShsocket->socketDescriptor();
+
+
+    session = libssh2_session_init();
+    if (!session) {
+        qDebug() << "Failed to create session";
+        return;
+    }
+
+    libssh2_session_set_blocking(session, 1);
+
+
+
+ \
+    rc = libssh2_session_handshake(session, sock);
+    if (rc) {
+        qDebug() << "Failure establishing SSH session:" << rc;
+        return;
+    }
+    rc = libssh2_userauth_password(session, "xiangsq", "xiangsq");
+    qDebug() << "Authentication by password rc="<<rc;
+
+      if (rc) {
+          qDebug() << "Authentication by password failed.";
+          libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
+          libssh2_session_free(session);
+          return;
+      }
+
 }
 
 MainWindow::~MainWindow()
@@ -236,10 +284,10 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::server_New_Connect()
 {
     // 获取客户端连接
-    socket = server->nextPendingConnection();
-    clientSocket.append(socket);
-    connect(socket, SIGNAL(readyRead()), this, SLOT(Read_Data()));
-    connect(socket, SIGNAL(disconnected()), this, SLOT(disConnected()));
+    mQsocket = server->nextPendingConnection();
+    clientSocket.append(mQsocket);
+    connect(mQsocket, SIGNAL(readyRead()), this, SLOT(Read_Data()));
+    connect(mQsocket, SIGNAL(disconnected()), this, SLOT(disConnected()));
 }
 
 void MainWindow::Read_Data()
