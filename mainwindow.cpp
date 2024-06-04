@@ -6,8 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <libssh2.h>
+//#include <libssh2.h>
 
+#include "sshclient.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -38,48 +39,50 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(server, &QTcpServer::newConnection, this, &MainWindow::server_New_Connect);
     server->listen(QHostAddress::LocalHost, 5055);
     qDebug() << "1111";
+//(const QString &hostname, int port, const QString &username, const QString &password,
+    SSHClient *mSShclient = new SSHClient();
+    mSShclient->connectToHost();
+
+//    unsigned long hostaddr;
+//    struct sockaddr_in sin;
+//    const char *fingerprint;
+//    LIBSSH2_SESSION *session;
+//    bool bR = false;
+//    FILE *local;
+
+//    int rc = libssh2_init(0);
 
 
-    unsigned long hostaddr;
-    struct sockaddr_in sin;
-    const char *fingerprint;
-    LIBSSH2_SESSION *session;
-    bool bR = false;
-    FILE *local;
-
-    int rc = libssh2_init(0);
+//     SShsocket = new QTcpSocket();
+//     SShsocket->connectToHost(QHostAddress("43.248.140.157"), 16127);
+//     int sock = SShsocket->socketDescriptor();
 
 
-     SShsocket = new QTcpSocket();
-     SShsocket->connectToHost(QHostAddress("43.248.140.157"), 16127);
-     int sock = SShsocket->socketDescriptor();
+//    session = libssh2_session_init();
+//    if (!session) {
+//        qDebug() << "Failed to create session";
+//        return;
+//    }
 
-
-    session = libssh2_session_init();
-    if (!session) {
-        qDebug() << "Failed to create session";
-        return;
-    }
-
-    libssh2_session_set_blocking(session, 1);
+//    libssh2_session_set_blocking(session, 1);
 
 
 
- \
-    rc = libssh2_session_handshake(session, sock);
-    if (rc) {
-        qDebug() << "Failure establishing SSH session:" << rc;
-        return;
-    }
-    rc = libssh2_userauth_password(session, "xiangsq", "xiangsq");
-    qDebug() << "Authentication by password rc="<<rc;
+// \
+//    rc = libssh2_session_handshake(session, sock);
+//    if (rc) {
+//        qDebug() << "Failure establishing SSH session:" << rc;
+//        return;
+//    }
+//    rc = libssh2_userauth_password(session, "xiangsq", "xiangsq");
+//    qDebug() << "Authentication by password rc="<<rc;
 
-      if (rc) {
-          qDebug() << "Authentication by password failed.";
-          libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
-          libssh2_session_free(session);
-          return;
-      }
+//      if (rc) {
+//          qDebug() << "Authentication by password failed.";
+//          libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
+//          libssh2_session_free(session);
+//          return;
+//      }
 
 }
 

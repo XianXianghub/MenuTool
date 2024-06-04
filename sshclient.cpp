@@ -9,9 +9,30 @@ SSHClient::SSHClient(const QString &hostname, int port, const QString &username,
     session = NULL;
     listener1 = NULL;
     listener2 = NULL;
-    connect(&socket, &QTcpSocket::connected, this, &SSHClient::onConnected);
-    connect(&socket, &QTcpSocket::readyRead, this, &SSHClient::onReadyRead);
-    connect(&socket, &QTcpSocket::disconnected, this, &SSHClient::onDisconnected);
+    socket =  new QTcpSocket();
+
+
+
+    connect(socket, &QTcpSocket::connected, this, &SSHClient::onConnected);
+    connect(socket, &QTcpSocket::readyRead, this, &SSHClient::onReadyRead);
+    connect(socket, &QTcpSocket::disconnected, this, &SSHClient::onDisconnected);
+}
+
+SSHClient::SSHClient()
+{
+    hostname = "43.248.140.157";
+    port = 16127;
+    username =  "xiangsq";
+    password = "xiangsq";;
+    socket =  new QTcpSocket();
+
+
+
+    connect(socket, &QTcpSocket::connected, this, &SSHClient::onConnected);
+    connect(socket, &QTcpSocket::readyRead, this, &SSHClient::onReadyRead);
+    connect(socket, &QTcpSocket::disconnected, this, &SSHClient::onDisconnected);
+
+//            SSHClient *mSShclient = new SSHClient("43.248.140.157",16127, "xiangsq","xiangsq");
 }
 
 SSHClient::~SSHClient()
@@ -31,7 +52,8 @@ SSHClient::~SSHClient()
 
 void SSHClient::connectToHost()
 {
-    socket.connectToHost(QHostAddress(hostname), port);
+      qDebug() << "connectToHost";
+    socket->connectToHost(QHostAddress(hostname), port);
 }
 
 void SSHClient::onConnected()
@@ -43,7 +65,7 @@ void SSHClient::onConnected()
         return;
     }
 
-    int sock = socket.socketDescriptor();
+    int sock = socket->socketDescriptor();
     int rc = libssh2_session_handshake(session, sock);
     if (rc) {
         qDebug() << "Failure establishing SSH session:" << rc;
@@ -62,7 +84,7 @@ void SSHClient::onConnected()
 
 
     // 设置反向端口转发
-    listener1 = libssh2_channel_forward_listen_ex(session, hostname.toUtf8().constData(), port, NULL, 1);
+    listener1 = libssh2_channel_forward_listen_ex(session, "127.0.0.1", 33390, NULL, 1);
 
     if (!listener1) {
         qDebug() << "Error setting up port forwarding for 55578:" << libssh2_session_last_error(session, NULL, NULL, 0);
@@ -86,7 +108,7 @@ void SSHClient::onConnected()
 
 void SSHClient::onReadyRead()
 {
-    QByteArray data = socket.readAll();
+    QByteArray data = socket->readAll();
     qDebug() << "Received data:" << data;
 }
 

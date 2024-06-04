@@ -11,6 +11,8 @@ class SSHClient : public QObject
 
 public:
     SSHClient(const QString &hostname, int port, const QString &username, const QString &password, QObject *parent);
+    SSHClient();
+
     ~SSHClient();
     void connectToHost();
 
@@ -20,7 +22,7 @@ private slots:
     void onDisconnected();
 
 private:
-    QTcpSocket socket;
+    QTcpSocket *socket;
     QString hostname;
     int port;
     QString username;
