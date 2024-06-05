@@ -33,6 +33,17 @@ QString ToolUtils::getDatetime()
     return strBuffer;
 }
 
+QString ToolUtils::toHexString(const char* data, size_t size) {
+    QString hex;
+    for (size_t i = 0; i < size; ++i) {
+        hex.append(QString("%1").arg((unsigned char)data[i], 2, 16, QChar('0')).toUpper());
+        if (i != size - 1) {
+            hex.append(" ");
+        }
+    }
+    return hex;
+}
+
 QString ToolUtils::getfromClip()
 {
     QString originalText  = clipboard->text().trimmed();            //获取剪贴板上文本信息

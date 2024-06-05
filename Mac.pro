@@ -39,6 +39,7 @@ DISTFILES += \
 
 RESOURCES += \
     resource.qrc
+LIBS += -lws2_32
 
 
 #LIBS += $$PWD/lib/libssh2.a

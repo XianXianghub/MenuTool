@@ -44,6 +44,8 @@ Logger::~Logger()
     }
 }
 
+
+
 void Logger::log(const QString &message)
 {
     if (!logFile.isOpen())
@@ -53,8 +55,8 @@ void Logger::log(const QString &message)
     }
 
     QTextStream logStream(&logFile);
-    QString logMessage = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz") + " - " + message + "\n";
-    logStream << logMessage;
+    QString logMessage = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz") + " - " + message;
+    logStream << logMessage<<"\n";
     qDebug() << logMessage;
     if (logStream.status() != QTextStream::Ok)
     {

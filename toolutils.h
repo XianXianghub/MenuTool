@@ -17,6 +17,7 @@
 class ToolUtils{
 
 public:
+    static QString toHexString(const char* data, size_t size);
     ToolUtils(QClipboard *clip);
     QString TrasAmlMac(QString serial);
     QString getDatetime();

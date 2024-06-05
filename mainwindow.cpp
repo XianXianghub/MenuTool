@@ -29,60 +29,25 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     else
     {
-//        logger->log("1111快捷键已占用");
-//        QMessageBox::information(NULL, "Title", "1111快捷键已占用", QMessageBox::Yes, QMessageBox::Yes);
+        logger->log("1111快捷键已占用");
+        QMessageBox::information(NULL, "Title", "1111快捷键已占用", QMessageBox::Yes, QMessageBox::Yes);
     }
     qDebug() << "2222";
-
     mQsocket = new QTcpSocket();
     server = new QTcpServer();
     connect(server, &QTcpServer::newConnection, this, &MainWindow::server_New_Connect);
     server->listen(QHostAddress::LocalHost, 5055);
     qDebug() << "1111";
-//(const QString &hostname, int port, const QString &username, const QString &password,
-    SSHClient *mSShclient = new SSHClient();
+
+
+
+    SSHClient *mSShclient = new SSHClient("43.248.140.157", 16127, "xiangsq", "xiangsq",logger, this);
+
+// //   SSHClient *mSShclient = new SSHClient("192.168.101.90", 22, "xiangsq", "xiangsq",logger, this);
+
     mSShclient->connectToHost();
 
-//    unsigned long hostaddr;
-//    struct sockaddr_in sin;
-//    const char *fingerprint;
-//    LIBSSH2_SESSION *session;
-//    bool bR = false;
-//    FILE *local;
 
-//    int rc = libssh2_init(0);
-
-
-//     SShsocket = new QTcpSocket();
-//     SShsocket->connectToHost(QHostAddress("43.248.140.157"), 16127);
-//     int sock = SShsocket->socketDescriptor();
-
-
-//    session = libssh2_session_init();
-//    if (!session) {
-//        qDebug() << "Failed to create session";
-//        return;
-//    }
-
-//    libssh2_session_set_blocking(session, 1);
-
-
-
-// \
-//    rc = libssh2_session_handshake(session, sock);
-//    if (rc) {
-//        qDebug() << "Failure establishing SSH session:" << rc;
-//        return;
-//    }
-//    rc = libssh2_userauth_password(session, "xiangsq", "xiangsq");
-//    qDebug() << "Authentication by password rc="<<rc;
-
-//      if (rc) {
-//          qDebug() << "Authentication by password failed.";
-//          libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
-//          libssh2_session_free(session);
-//          return;
-//      }
 
 }
 
