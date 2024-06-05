@@ -22,6 +22,7 @@ private slots:
     void onDisconnected();
 
 private:
+    void handleForwardedConnection(LIBSSH2_CHANNEL *channel);
     QTcpSocket *socket;
     QString hostname;
     int port;

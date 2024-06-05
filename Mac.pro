@@ -54,5 +54,5 @@ LIBS += -L$$PWD/lib/ -lzlib
 
 
 
-INCLUDEPATH += E:\qt\work\MenuTool\include
+INCLUDEPATH += $$PWD/include
 
