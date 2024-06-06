@@ -30,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     else
     {
         logger->log("1111快捷键已占用");
-        QMessageBox::information(NULL, "Title", "1111快捷键已占用", QMessageBox::Yes, QMessageBox::Yes);
+//        QMessageBox::information(NULL, "Title", "1111快捷键已占用", QMessageBox::Yes, QMessageBox::Yes);
     }
     qDebug() << "2222";
     mQsocket = new QTcpSocket();

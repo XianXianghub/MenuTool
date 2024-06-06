@@ -4,6 +4,8 @@
 #include <winsock2.h>  // 添加此行
 #include "toolutils.h"
 #include <QNetworkProxy>
+#include <QElapsedTimer>
+#include <QThread>
 
 
 SSHClient::SSHClient(const QString &hostname, int port, const QString &username, const QString &password, Logger *logger, QObject *parent)
@@ -76,8 +78,9 @@ void SSHClient::onConnected()
 
     qDebug() << "Authentication succeeded.";
 
+    int localport = 55597;
 
-    listener1 = libssh2_channel_forward_listen_ex(session, "127.0.0.1", 55593, NULL, 1);
+    listener1 = libssh2_channel_forward_listen_ex(session, "127.0.0.1", localport, NULL, 1);
 
     if (!listener1) {
         qDebug() << "Error setting up port forwarding for 55578:" << libssh2_session_last_error(session, NULL, NULL, 0);
@@ -87,7 +90,7 @@ void SSHClient::onConnected()
     }
 
 
-    qDebug() << "Port forwarding setup successfully.";
+    qDebug() << "Port forwarding setup successfully port="<<localport;
 
 
     while (true) {
@@ -111,7 +114,7 @@ void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
         logger->log("localSocket->connectToHost");
     }
 
-    libssh2_channel_set_blocking(channel, 1);
+    libssh2_channel_set_blocking(channel, 0);
 
     while (true) {
         if (!localSocket->waitForConnected()) {
@@ -127,62 +130,49 @@ void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
 
         logger->log("libssh2_channel_read");
 
-
-
         bool done = false;
-        int cnt = 3;
+        int cnt = 0;
+        QElapsedTimer timer;
+        QByteArray dataBuffer; // 存储从channel读取的数据
 
-           while (!done) {
-               char buffer[1024];
-               qDebug() << "libssh2_channel_read once";
-               ssize_t n = libssh2_channel_read(channel, buffer, sizeof(buffer));
+        while (!done) {
+            char buffer[1*1024];
+            ssize_t n = libssh2_channel_read(channel, buffer, sizeof(buffer));
 
-               if (n > 0) {
-                   // 将读取的数据转换为十六进制字符串并记录日志
-                   QString hexString = ToolUtils::toHexString(buffer, n);
-                   logger->log("Read " + QString::number(n) + " bytes from channel: " + hexString);
-                   logger->log("Read from channel: " + QString::fromUtf8(buffer, n));
+            if (n > 0) {
+                // 将数据追加到dataBuffer中
+                dataBuffer.append(buffer, n);
+                cnt += n;
+                logger->log("Read " + QString::number(n) + " bytes from channel: ");
+                logger->log("Read total " + QString::number(cnt) );
+                timer.restart(); // 重新开始计时
+            } else if (n == LIBSSH2_ERROR_EAGAIN) {
+                // 检查是否超过500毫秒
+                if (timer.isValid() && timer.elapsed() >= 200) {
+                    logger->log("Timeout: No data received for 500ms");
+                    done = true;
+                }
+            } else if (n == 0) {
+                done = true;
+            } else {
+                logger->log("Error reading from channel: " + QString::number(n));
+                break;
+            }
+        }
 
-                   // 写入到本地套接字
-                   qint64 totalWritten = 0;
-                   while (totalWritten < n) {
-                       qint64 written = localSocket->write(buffer + totalWritten, n - totalWritten);
-                       if (written == -1) {
-                           logger->log("Failed to write data to local socket");
-                           done = true;
-                           break;
-                       }
-                       totalWritten += written;
-                   }
+        // 将dataBuffer中的数据写入localSocket
+        qint64 totalWritten = 0;
+        while (totalWritten < dataBuffer.size()) {
+            qint64 written = localSocket->write(dataBuffer.constData() + totalWritten, dataBuffer.size() - totalWritten);
+            if (written == -1) {
+                logger->log("Failed to write data to local socket");
+                break;
+            }
+            totalWritten += written;
+        }
 
-                   if (totalWritten != n) {
-                       logger->log("Failed to write all data to local socket");
-                       done = true;
-                   }
-               } else if (n == LIBSSH2_ERROR_EAGAIN) {
-                   // 非阻塞模式下，这意味着暂时没有更多的数据可读，可以继续读取
-                   break;
-               } else if (n == 0) {
-                   // 通道已关闭
-                   done = true;
-               } else {
-                   // 读取错误
-                   logger->log("Error reading from channel: " + QString::number(n));
-                   libssh2_channel_free(channel);
-                   return;
-               }
-
-               // 当读取到的数据大小小于缓冲区大小时，表示没有更多的数据可读
-               if (n < sizeof(buffer)) {
-                   done = true;
-               }
-//               cnt--;
-//               if(cnt < 0){
-//                   done = true;
-//               }
-           }
-
-
+        // 清空dataBuffer
+        dataBuffer.clear();
 
 
 
