@@ -107,140 +107,89 @@ void SSHClient::onConnected()
         }
 }
 void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
-{
+{        logger->log("time 1");
+
     QTcpSocket *localSocket = new QTcpSocket();
-    if (localSocket->state() != QAbstractSocket::ConnectedState) {
-        localSocket->connectToHost("127.0.0.1", 5037);
-        logger->log("localSocket->connectToHost");
+    localSocket->connectToHost("127.0.0.1", 5037);
+    if (!localSocket->waitForConnected(3000)) {
+        logger->log("Failed to connect to local port 5037");
+        libssh2_channel_free(channel);
+        delete localSocket;
+        return;
     }
+    logger->log("time 2");
 
     libssh2_channel_set_blocking(channel, 0);
 
+    fd_set fds;
+    struct timeval timeout;
+
+    int sock = socket->socketDescriptor();
+         logger->log("time 3");
+
     while (true) {
-        if (!localSocket->waitForConnected()) {
-            logger->log("Failed to connect to local port 5037");
-            libssh2_channel_free(channel);
-            return;
-        }
 
         if (libssh2_channel_eof(channel)) {
             logger->log("Channel EOF detected");
             break;
         }
+        logger->log("time 4");
 
-        logger->log("libssh2_channel_read");
-        bool done = false;
-                 int cnt = 0;
-                 QElapsedTimer timer;
-                 int waitTime = 0;
-                 boolean isHasData = false;
-                 int wait_interval = 3;
-
-                 while (!done) {
-                     char buffer[4*1024];
-                     ssize_t n = libssh2_channel_read(channel, buffer, sizeof(buffer));
-
-                     if (n > 0) {
-                         // 处理读取的数据
-                            isHasData = true;
-
-                         qint64 totalWritten = 0;
-                         while (totalWritten < n) {
-                             qint64 written = localSocket->write(buffer + totalWritten, n - totalWritten);
-                             if (written == -1) {
-                                 logger->log("Failed to write data to local socket");
-                                 done = true;
-                                 break;
-                             }
-                             totalWritten += written;
-                         }
-                         cnt += n;
-                         logger->log("Read " + QString::number(n) + " bytes from channel: ");
-                         logger->log("Read total " + QString::number(cnt) );
-//                         timer.restart(); // 重新开始计时
-//                         if(n < 4*1024 ){
-//                             logger->log("waitForReadyRead enter");
-
-
-//                         }
-                         waitTime = 0;
-                     } else if (n == LIBSSH2_ERROR_EAGAIN) {
-                         // 检查是否超过500毫秒
-//                         if (timer.isValid() && timer.elapsed() >= 500) {
-//                             logger->log("Timeout: No data received for 500ms");
-//                             done = true;
-//                         }
-                         if(isHasData){
-                             if (localSocket->waitForReadyRead(wait_interval)) {
-                                 logger->log("waitForReadyRead 10");
-
-                                 break;
-                             }else{
-                                 logger->log("waitForReadyRead continue"+QString::number(waitTime*wait_interval));
-                                 waitTime++;
-                                 if(waitTime > 3000) break;
-                             }
-                         }else{
-                              QThread::msleep(3);
-                         }
-                     } else if (n == 0) {
-                         done = true;
-                     } else {
-                         logger->log("Error reading from channel: " + QString::number(n));
-                         break;
-                     }
-                 }
-                 cnt = 0;
-
-
-
-        logger->log("waitForReadyRead +++");
-//        if (!localSocket->waitForReadyRead(3000)) {  // 等待 3 秒钟
-//            logger->log("Failed to wait for local socket to be ready");
-//            libssh2_channel_free(channel);
-//            return;
-//        }
-        logger->log("waitForReadyRead ---");
-        logger->log("localSocket readAll +++");
-        QByteArray localData;
-        while (localSocket->bytesAvailable() > 0) {
-            localData.append(localSocket->readAll());
-            if (!localSocket->waitForReadyRead(100)) {  // 等待 1 秒钟
-                break;
-            }
-        }
-        logger->log("localSocket readAll ---");
-
-        // 检查是否成功读取到数据
-         if (localData.isEmpty()) {
-             logger->log("Failed to read data from local socket");
+        if (!localSocket->waitForConnected(3000)) {
+            logger->log("Failed to connect to local port 5037");
              break;
-         }
+        }
+        logger->log("time 5");
 
-        logger->log("Read " + QString::number(localData.size()) + " bytes from local socket: " + localData);
+        char buffer[4 * 1024];
+        ssize_t n = libssh2_channel_read(channel, buffer, sizeof(buffer));
+        if (n > 0) {
+//            QString bufferString = QString::fromUtf8(buffer, n);
+//            logger->log("Read from channel: " + bufferString);
 
-        // 将读取到的数据分段写入 SSH 通道
-        qint64 bytesRemaining = localData.size();
-        const char *dataPtr = localData.constData();
-
-        while (bytesRemaining > 0) {
-            ssize_t bytesToWrite = qMin<qint64>(bytesRemaining, 4*1024);  // 每次写入最多 1024 字节
-//            logger->log("dddd===" + QString::number(bytesToWrite));
-
-            ssize_t nwritten = libssh2_channel_write(channel, dataPtr, bytesToWrite);
-            if (nwritten < 0) {
-                logger->log("Error writing to channel: " + QString::number(nwritten));
-                libssh2_channel_free(channel);
-                return;
+            qint64 totalWritten = 0;
+            while (totalWritten < n) {
+                qint64 written = localSocket->write(buffer + totalWritten, n - totalWritten);
+                if (written == -1) {
+                    logger->log("Failed to write data to local socket");
+                    break;
+                }
+                totalWritten += written;
             }
-
-            dataPtr += nwritten;
-            bytesRemaining -= nwritten;
-
-//            logger->log("Wrote " + QString::number(nwritten) + " bytes to channel");
+            logger->log("Read " + QString::number(n) + " bytes from channel.");
+        } else if (n < 0 && n != LIBSSH2_ERROR_EAGAIN) {
+            logger->log("QThread sleep");
+            QThread::msleep(3);
         }
 
-        logger->log("Finished writing data to channel");
+        logger->log("time 6");
+
+
+
+        if (localSocket->waitForReadyRead(1)) {
+            logger->log("localSocket descriptor is set");
+            QByteArray localData = localSocket->readAll();
+            if (!localData.isEmpty()) {
+                qint64 bytesRemaining = localData.size();
+                const char *dataPtr = localData.constData();
+
+                libssh2_channel_set_blocking(channel, 1);
+                while (bytesRemaining > 0) {
+                    ssize_t bytesToWrite = qMin<qint64>(bytesRemaining, 4 * 1024);
+                    ssize_t nwritten = libssh2_channel_write(channel, dataPtr, bytesToWrite);
+                    if (nwritten < 0) {
+                        logger->log("Error writing to channel: " + QString::number(nwritten));
+                        break;
+                    }
+                    dataPtr += nwritten;
+                    bytesRemaining -= nwritten;
+                }
+                libssh2_channel_set_blocking(channel, 0);
+                logger->log("Finished writing data to channel");
+            }
+        }
+        logger->log("time 7");
+
     }
 
     logger->log("libssh2_channel_close");
@@ -249,6 +198,7 @@ void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
     localSocket->close();
     delete localSocket;
 }
+
 
 void SSHClient::waitForChannelRead(LIBSSH2_SESSION *session)
 {
