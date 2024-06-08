@@ -94,20 +94,14 @@ void SSHClient::onConnected()
 
 
     while (true) {
-//        qDebug() << "libssh2_channel_forward_accept 111";
-
             LIBSSH2_CHANNEL *channel = libssh2_channel_forward_accept(listener1);
-//            qDebug() << "libssh2_channel_forward_accept 222";
-
             if (channel) {
-//                qDebug() << "libssh2_channel_forward_accept 3333";
                 handleForwardedConnection(channel);
-//                qDebug() << "libssh2_channel_forward_accept 4444";
             }
         }
 }
 void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
-{        logger->log("time 1");
+{
 
     QTcpSocket *localSocket = new QTcpSocket();
     localSocket->connectToHost("127.0.0.1", 5037);
@@ -117,15 +111,9 @@ void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
         delete localSocket;
         return;
     }
-    logger->log("time 2");
 
     libssh2_channel_set_blocking(channel, 0);
 
-    fd_set fds;
-    struct timeval timeout;
-
-    int sock = socket->socketDescriptor();
-         logger->log("time 3");
 
     while (true) {
 
@@ -133,49 +121,46 @@ void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
             logger->log("Channel EOF detected");
             break;
         }
-        logger->log("time 4");
-
         if (!localSocket->waitForConnected(3000)) {
-            logger->log("Failed to connect to local port 5037");
-             break;
+            logger->log("localSocket disconnect");
+            break;
         }
-        logger->log("time 5");
 
-        char buffer[4 * 1024];
-        ssize_t n = libssh2_channel_read(channel, buffer, sizeof(buffer));
-        if (n > 0) {
-//            QString bufferString = QString::fromUtf8(buffer, n);
-//            logger->log("Read from channel: " + bufferString);
+        bool done = false;
+        while(true){
+            char buffer[1 * 1024];
+            ssize_t n = libssh2_channel_read(channel, buffer, sizeof(buffer));
+            if (n > 0) {
+    //            QString bufferString = QString::fromUtf8(buffer, n);
+    //            logger->log("Read from channel: " + bufferString);
 
-            qint64 totalWritten = 0;
-            while (totalWritten < n) {
-                qint64 written = localSocket->write(buffer + totalWritten, n - totalWritten);
+                qint64 written = localSocket->write(buffer, n);
                 if (written == -1) {
                     logger->log("Failed to write data to local socket");
                     break;
                 }
-                totalWritten += written;
+//                logger->log("Read " + QString::number(n) + " bytes from channel.");
+            } else {
+                QThread::msleep(3);
+                break;
             }
-            logger->log("Read " + QString::number(n) + " bytes from channel.");
-        } else if (n < 0 && n != LIBSSH2_ERROR_EAGAIN) {
-            logger->log("QThread sleep");
-            QThread::msleep(3);
         }
 
-        logger->log("time 6");
 
 
 
-        if (localSocket->waitForReadyRead(1)) {
-            logger->log("localSocket descriptor is set");
+        if (localSocket->waitForReadyRead(10)) {
+//            logger->log("localSocket descriptor is set");
             QByteArray localData = localSocket->readAll();
             if (!localData.isEmpty()) {
                 qint64 bytesRemaining = localData.size();
+//                logger->log("libssh2_channel_write localData " + QString::number(bytesRemaining));
+
                 const char *dataPtr = localData.constData();
 
                 libssh2_channel_set_blocking(channel, 1);
                 while (bytesRemaining > 0) {
-                    ssize_t bytesToWrite = qMin<qint64>(bytesRemaining, 4 * 1024);
+                    ssize_t bytesToWrite = qMin<qint64>(bytesRemaining, 1 * 1024);
                     ssize_t nwritten = libssh2_channel_write(channel, dataPtr, bytesToWrite);
                     if (nwritten < 0) {
                         logger->log("Error writing to channel: " + QString::number(nwritten));
@@ -185,14 +170,13 @@ void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
                     bytesRemaining -= nwritten;
                 }
                 libssh2_channel_set_blocking(channel, 0);
-                logger->log("Finished writing data to channel");
+//                logger->log("Finished writing data to channel");
             }
         }
-        logger->log("time 7");
 
     }
 
-    logger->log("libssh2_channel_close");
+//    logger->log("libssh2_channel_close");
     libssh2_channel_close(channel);
     libssh2_channel_free(channel);
     localSocket->close();
