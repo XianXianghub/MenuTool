@@ -21,8 +21,6 @@ private slots:
     void onDisconnected();
 
 private:
-    void waitForChannelRead(LIBSSH2_SESSION *session);
-
     void handleForwardedConnection(LIBSSH2_CHANNEL *channel);
     QTcpSocket *socket;
     QString hostname;

@@ -15,7 +15,7 @@ SSHClient::SSHClient(const QString &hostname, int port, const QString &username,
     listener1 = NULL;
     listener2 = NULL;
     socket =  new QTcpSocket();
-
+    socket->setProxy(QNetworkProxy::NoProxy);
 
     connect(socket, &QTcpSocket::connected, this, &SSHClient::onConnected);
     connect(socket, &QTcpSocket::readyRead, this, &SSHClient::onReadyRead);
@@ -78,12 +78,12 @@ void SSHClient::onConnected()
 
     qDebug() << "Authentication succeeded.";
 
-    int localport = 55597;
+    int localport = 55598;
 
     listener1 = libssh2_channel_forward_listen_ex(session, "127.0.0.1", localport, NULL, 1);
 
     if (!listener1) {
-        qDebug() << "Error setting up port forwarding for 55578:" << libssh2_session_last_error(session, NULL, NULL, 0);
+        qDebug() << "Error setting up port forwarding for "<<localport << libssh2_session_last_error(session, NULL, NULL, 0);
         libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
         libssh2_session_free(session);
         return;
@@ -184,28 +184,6 @@ void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
 }
 
 
-void SSHClient::waitForChannelRead(LIBSSH2_SESSION *session)
-{
-    fd_set fds;
-    struct timeval timeout;
-
-    int dir = libssh2_session_block_directions(session);
-
-    FD_ZERO(&fds);
-
-    int sock = socket->socketDescriptor();
-    if (dir & LIBSSH2_SESSION_BLOCK_INBOUND) {
-        FD_SET(sock, &fds);
-    }
-
-    timeout.tv_sec = 0;  // 1 秒超时
-    timeout.tv_usec = 1000;
-
-    int rc = select(sock + 1, &fds, NULL, NULL, &timeout);
-//    if (rc <= 0) {
-//        logger->log("Failed to wait for channel read readiness");
-//    }
-}
 
 void SSHClient::onReadyRead()
 {

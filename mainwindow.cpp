@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-//#include <libssh2.h>
-
 #include "sshclient.h"
 
 
@@ -41,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
-    SSHClient *mSShclient = new SSHClient("43.248.140.157", 16127, "xiangsq", "xiangsq",logger, this);
+   SSHClient *mSShclient = new SSHClient("43.248.140.157", 16127, "xiangsq", "xiangsq",logger, this);
 
 // //   SSHClient *mSShclient = new SSHClient("192.168.101.90", 22, "xiangsq", "xiangsq",logger, this);
 
