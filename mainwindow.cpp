@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "sshclient.h"
+
+#include <QCoreApplication>
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -37,15 +38,56 @@ MainWindow::MainWindow(QWidget *parent) :
     server->listen(QHostAddress::LocalHost, 5055);
     qDebug() << "1111";
 
+    mSShclient90 = new SSHClient( logger);
+    //SSHClient *mSShclient = new SSHClient("192.168.101.90", 22, "xiangsq", "xiangsq",logger, this);
+    thread90 = new QThread();
+    mSShclient90->moveToThread(thread90);
+    thread90->start();
+
+    mSShclient87 = new SSHClient( logger);
+    thread87 = new QThread();
+    mSShclient87->moveToThread(thread87);
+    thread87->start();
+
+    mSShclient80 = new SSHClient( logger);
+    thread80 = new QThread();
+    mSShclient80->moveToThread(thread80);
+    thread80->start();
 
 
-   SSHClient *mSShclient = new SSHClient("43.248.140.157", 16127, "xiangsq", "xiangsq",logger, this);
+    connect(this, &MainWindow::startSSHConnection90, mSShclient90, &SSHClient::connectToHost);
+    connect(this, &MainWindow::startSSHConnection87, mSShclient87, &SSHClient::connectToHost);
+    connect(this, &MainWindow::startSSHConnection80, mSShclient80, &SSHClient::connectToHost);
 
-// //   SSHClient *mSShclient = new SSHClient("192.168.101.90", 22, "xiangsq", "xiangsq",logger, this);
+    QString cinfigPath = QCoreApplication::applicationDirPath() + "/remoteConfig.xml";
+    SSHConfigParser parser;
+    qRegisterMetaType<SshConfig>("SshConfig");
 
-    mSShclient->connectToHost();
-
-
+   if (parser.loadFromFile(cinfigPath)) {
+          for (int i = 0; i < parser.configs.size(); ++i) {
+              const SshConfig &config = parser.configs.at(i);
+//              qDebug() << "Name:" << config.name;
+//              qDebug() << "SSH Host:" << config.ssh_host;
+//              qDebug() << "SSH Port:" << config.ssh_port;
+//              qDebug() << "SSH User:" << config.ssh_user;
+//              qDebug() << "SSH Password:" << config.ssh_pwd;
+//              qDebug() << "ADB Remote Host:" << config.adb_remote_host;
+//              qDebug() << "ADB Remote Port:" << config.adb_remote_port;
+//              qDebug() << "CMD Local Host:" << config.cmd_local_host;
+//              qDebug() << "CMD Local Port:" << config.cmd_local_port;
+//              qDebug() << "--------------------------";
+              if (config.name == "90") {
+                 emit startSSHConnection90(config);
+              }else if (config.name == "87") {
+                 emit startSSHConnection87(config);
+              }else if (config.name == "80") {
+                 emit startSSHConnection80(config);
+              }
+          }
+      } else {
+          qDebug() << "Failed to load config file.";
+      }
+//    emit startSSHConnection();
 
 }
 

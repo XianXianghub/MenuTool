@@ -11,6 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Mac
 TEMPLATE = app
 include(qxtglobalshortcut5-master/qxt.pri)
+CONFIG += c++11
 
 
 SOURCES += main.cpp\
@@ -29,7 +30,8 @@ HEADERS  += mainwindow.h \
     constlist.h \
     logger.h \
     sshtunnelconfigdialog.h \
-    sshclient.h
+    sshclient.h \
+    sshconfig.h
 FORMS    += mainwindow.ui \
     dialog.ui \
     sshtunnelconfigdialog.ui
