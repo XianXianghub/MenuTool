@@ -55,10 +55,6 @@ public:
     QAction *quitAction;
     QAction *w2lAction;
     ToolUtils *tool;
-signals:
-    void startSSHConnection90(SshConfig config); // 添加信号声明
-    void startSSHConnection87(SshConfig config); // 添加信号声明
-    void startSSHConnection80(SshConfig config); // 添加信号声明
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -79,6 +75,7 @@ private slots:
     void Read_Data();
 
     void disConnected();
+    void handleForwardedSSHData(const QString &data);
 
 private:
     Ui::MainWindow *ui;
@@ -88,13 +85,6 @@ private:
     Logger *logger;
     QTcpSocket *SShsocket;
     QHash<QString , QTcpSocket*> qhash;
-    QThread* thread90;
-    QThread* thread87;
-    QThread* thread80;
-
-    SSHClient *mSShclient90;
-    SSHClient *mSShclient87;
-    SSHClient *mSShclient80;
 
     QList<QTcpSocket*> clientSocket;
     QString xshell_ip = "";

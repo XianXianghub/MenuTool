@@ -34,61 +34,43 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "2222";
     mQsocket = new QTcpSocket();
     server = new QTcpServer();
-    connect(server, &QTcpServer::newConnection, this, &MainWindow::server_New_Connect);
-    server->listen(QHostAddress::LocalHost, 5055);
+//    connect(server, &QTcpServer::newConnection, this, &MainWindow::server_New_Connect);
+//    server->listen(QHostAddress::LocalHost, 5055);
     qDebug() << "1111";
 
-    mSShclient90 = new SSHClient( logger);
-    //SSHClient *mSShclient = new SSHClient("192.168.101.90", 22, "xiangsq", "xiangsq",logger, this);
-    thread90 = new QThread();
-    mSShclient90->moveToThread(thread90);
-    thread90->start();
-
-    mSShclient87 = new SSHClient( logger);
-    thread87 = new QThread();
-    mSShclient87->moveToThread(thread87);
-    thread87->start();
-
-    mSShclient80 = new SSHClient( logger);
-    thread80 = new QThread();
-    mSShclient80->moveToThread(thread80);
-    thread80->start();
 
 
-    connect(this, &MainWindow::startSSHConnection90, mSShclient90, &SSHClient::connectToHost);
-    connect(this, &MainWindow::startSSHConnection87, mSShclient87, &SSHClient::connectToHost);
-    connect(this, &MainWindow::startSSHConnection80, mSShclient80, &SSHClient::connectToHost);
+      SSHClientManager manager(logger);
 
-    QString cinfigPath = QCoreApplication::applicationDirPath() + "/remoteConfig.xml";
-    SSHConfigParser parser;
-    qRegisterMetaType<SshConfig>("SshConfig");
+      QString configPath = QCoreApplication::applicationDirPath() + "/remoteConfig.xml";
+      SSHConfigParser parser;
+      qRegisterMetaType<SshConfig>("SshConfig");
 
-   if (parser.loadFromFile(cinfigPath)) {
-          for (int i = 0; i < parser.configs.size(); ++i) {
-              const SshConfig &config = parser.configs.at(i);
-//              qDebug() << "Name:" << config.name;
-//              qDebug() << "SSH Host:" << config.ssh_host;
-//              qDebug() << "SSH Port:" << config.ssh_port;
-//              qDebug() << "SSH User:" << config.ssh_user;
-//              qDebug() << "SSH Password:" << config.ssh_pwd;
-//              qDebug() << "ADB Remote Host:" << config.adb_remote_host;
-//              qDebug() << "ADB Remote Port:" << config.adb_remote_port;
-//              qDebug() << "CMD Local Host:" << config.cmd_local_host;
-//              qDebug() << "CMD Local Port:" << config.cmd_local_port;
-//              qDebug() << "--------------------------";
-              if (config.name == "90") {
-                 emit startSSHConnection90(config);
-              }else if (config.name == "87") {
-                 emit startSSHConnection87(config);
-              }else if (config.name == "80") {
-                 emit startSSHConnection80(config);
-              }
+      if (parser.loadFromFile(configPath)) {
+          for (const SshConfig &config : parser.configs) {
+              //              qDebug() << "Name:" << config.name;
+              //              qDebug() << "SSH Host:" << config.ssh_host;
+              //              qDebug() << "SSH Port:" << config.ssh_port;
+              //              qDebug() << "SSH User:" << config.ssh_user;
+              //              qDebug() << "SSH Password:" << config.ssh_pwd;
+              //              qDebug() << "ADB Remote Host:" << config.adb_remote_host;
+              //              qDebug() << "ADB Remote Port:" << config.adb_remote_port;
+              //              qDebug() << "CMD Local Host:" << config.cmd_local_host;
+              //              qDebug() << "CMD Local Port:" << config.cmd_local_port;
+              //              qDebug() << "--------------------------";
+              manager.startSSHClient(config);
           }
       } else {
           qDebug() << "Failed to load config file.";
       }
-//    emit startSSHConnection();
+      connect(&manager, &SSHClientManager::forwardSSHData, this, &MainWindow::handleForwardedSSHData);
 
+}
+void MainWindow::handleForwardedSSHData(const QString &data)
+{
+    // 在这里处理从 SSHClient 接收到的数据
+    qDebug() << "Received SSH data in MainWindow:" << data;
+    // 根据需要进行其他处理，比如在界面上显示等操作
 }
 
 MainWindow::~MainWindow()
