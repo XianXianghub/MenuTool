@@ -7,6 +7,7 @@
 #include "logger.h"
 #include "sshconfig.h"
 #include <QThread>
+#include <QElapsedTimer>  // 添加此行
 
 
 
@@ -36,7 +37,8 @@ private:
     void proccessData(QString data);
     QTcpSocket *socket;
     bool stopLoop; // 新的成员变量，用于标识是否停止循环
-
+    QElapsedTimer keepAliveTimer;  // 添加此行
+      qint64 keepAliveInterval;      // 添加此行
 
     SshConfig config;
 
