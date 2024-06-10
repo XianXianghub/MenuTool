@@ -21,7 +21,8 @@ SOURCES += main.cpp\
     xmlutils.cpp \
     logger.cpp \
     sshtunnelconfigdialog.cpp \
-    sshclient.cpp
+    sshclient.cpp \
+    sshclientmanager.cpp
 
 HEADERS  += mainwindow.h \
     toolutils.h \
@@ -31,7 +32,8 @@ HEADERS  += mainwindow.h \
     logger.h \
     sshtunnelconfigdialog.h \
     sshclient.h \
-    sshconfig.h
+    sshconfig.h \
+    sshclientmanager.h
 FORMS    += mainwindow.ui \
     dialog.ui \
     sshtunnelconfigdialog.ui

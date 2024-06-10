@@ -3,7 +3,10 @@
 #include <QDir>
 #include <QDebug>
 #include <QCoreApplication>
+#include <QMutex> // 添加这一行
 
+// 定义一个全局互斥锁
+static QMutex logMutex;
 
 Logger::Logger()
 {
@@ -44,19 +47,21 @@ Logger::~Logger()
     }
 }
 
-
-
 void Logger::log(const QString &message)
 {
+    // 加锁
+    logMutex.lock();
+
     if (!logFile.isOpen())
     {
         qDebug() << "Log file is not open!";
+        logMutex.unlock();
         return;
     }
 
     QTextStream logStream(&logFile);
     QString logMessage = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz") + " - " + message;
-    logStream << logMessage<<"\n";
+    logStream << logMessage << "\n";
     qDebug() << logMessage;
     if (logStream.status() != QTextStream::Ok)
     {
@@ -64,4 +69,7 @@ void Logger::log(const QString &message)
     }
 
     logFile.flush();  // Ensure the buffer is written to the file
+
+    // 解锁
+    logMutex.unlock();
 }

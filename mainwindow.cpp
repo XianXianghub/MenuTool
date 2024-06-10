@@ -40,31 +40,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
-      SSHClientManager manager(logger);
+       mSSHClientManager = new SSHClientManager(logger);
+       connect(mSSHClientManager, &SSHClientManager::forwardSSHData, this, &MainWindow::handleForwardedSSHData);
 
-      QString configPath = QCoreApplication::applicationDirPath() + "/remoteConfig.xml";
-      SSHConfigParser parser;
-      qRegisterMetaType<SshConfig>("SshConfig");
-
-      if (parser.loadFromFile(configPath)) {
-          for (const SshConfig &config : parser.configs) {
-              //              qDebug() << "Name:" << config.name;
-              //              qDebug() << "SSH Host:" << config.ssh_host;
-              //              qDebug() << "SSH Port:" << config.ssh_port;
-              //              qDebug() << "SSH User:" << config.ssh_user;
-              //              qDebug() << "SSH Password:" << config.ssh_pwd;
-              //              qDebug() << "ADB Remote Host:" << config.adb_remote_host;
-              //              qDebug() << "ADB Remote Port:" << config.adb_remote_port;
-              //              qDebug() << "CMD Local Host:" << config.cmd_local_host;
-              //              qDebug() << "CMD Local Port:" << config.cmd_local_port;
-              //              qDebug() << "--------------------------";
-              manager.startSSHClient(config);
-          }
-      } else {
-          qDebug() << "Failed to load config file.";
-      }
-      connect(&manager, &SSHClientManager::forwardSSHData, this, &MainWindow::handleForwardedSSHData);
-
+       QString configPath = QCoreApplication::applicationDirPath() + "/remoteConfig.xml";
+       mSSHClientManager->loadConfigsAndStartClients(configPath);
 }
 void MainWindow::handleForwardedSSHData(const QString &data)
 {
@@ -256,8 +236,10 @@ void MainWindow::quit_action()
 
 void MainWindow::openSshConfigPage()
 {
-    SshTunnelConfigDialog *dialog = new SshTunnelConfigDialog(this);
-    dialog->exec();
+//    SshTunnelConfigDialog *dialog = new SshTunnelConfigDialog(this);
+//    dialog->exec();
+
+    mSSHClientManager->restartAllSSHClients();
 }
 
 void MainWindow::hotkey_press_action()

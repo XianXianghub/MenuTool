@@ -22,7 +22,7 @@
 #include <QHash>
 #include <QProcess>
 #include "SshTunnelConfigDialog.h"
-
+#include "sshclientmanager.h"
 #include "sshconfig.h"
 
 
@@ -85,6 +85,7 @@ private:
     Logger *logger;
     QTcpSocket *SShsocket;
     QHash<QString , QTcpSocket*> qhash;
+     SSHClientManager *mSSHClientManager;
 
     QList<QTcpSocket*> clientSocket;
     QString xshell_ip = "";

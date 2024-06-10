@@ -4,7 +4,6 @@
 #include <winsock2.h>  // 添加此行
 #include "toolutils.h"
 #include <QNetworkProxy>
-#include <QElapsedTimer>
 #include <QThread>
 #include "constlist.h"
 
@@ -46,12 +45,18 @@ void SSHClient::connectToHost(SshConfig config)
     qDebug() << "sshclient SSH Password:" << config.ssh_pwd;
     qDebug() << "sshclient ADB Remote Host:" << config.adb_remote_host;
     qDebug() << "sshclient ADB Remote Port:" << config.adb_remote_port;
-    qDebug() << "sshclient CMD Local Host:" << config.cmd_local_host;
-    qDebug() << "sshclient CMD Local Port:" << config.cmd_local_port;
+    qDebug() << "sshclient ADB Local Host:" << config.adb_local_host;
+    qDebug() << "sshclient ADB Local Port:" << config.adb_local_port;
+    qDebug() << "sshclient CMD Remote Port:" << config.cmd_remote_host;
+    qDebug() << "sshclient CMD Remote Port:" << config.cmd_remote_port;
+
     qDebug() << "--------------------------";
     this->config = config;
     socket = new QTcpSocket();
     socket->setProxy(QNetworkProxy::NoProxy);
+    socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1); // 启用 keep-alive
+
+
     connect(socket, &QTcpSocket::connected, this, &SSHClient::onConnected);
     connect(socket, &QTcpSocket::disconnected, this, &SSHClient::onDisconnected);
     qDebug() << "connectToHost" << config.ssh_host << config.ssh_port;
@@ -89,7 +94,40 @@ void SSHClient::onConnected()
         return;
     }
 
-    qDebug() << "Authentication succeeded.";
+
+
+    LIBSSH2_CHANNEL* channel = libssh2_channel_open_session(session);
+    if (!channel)
+    {
+        qDebug() <<"Failed to open channel session\n";
+        return ;
+    }
+    rc = libssh2_channel_exec(channel, QString("echo %1 > ~/xetc/port.txt").arg(config.cmd_remote_port).toStdString().c_str());
+    if (rc != 0)
+    {
+        qDebug() << "Failed to execute the first command\n";
+        return;
+    }
+
+    libssh2_channel_close(channel);
+    libssh2_channel_free(channel);
+
+    channel = libssh2_channel_open_session(session);
+    if (!channel)
+    {
+        qDebug() << "Failed to open a new channel\n";
+        return;
+    }
+    rc = libssh2_channel_exec(channel, QString("echo %1 > ~/xetc/adb_port.txt").arg(config.adb_remote_port).toStdString().c_str());
+    if (rc != 0)
+    {
+        qDebug() << "Failed to execute the second command\n";
+        return;
+    }
+//    libssh2_channel_close(channel);
+//    libssh2_channel_free(channel);
+
+
 
     listener1 = libssh2_channel_forward_listen_ex(session, config.adb_remote_host.toLatin1().constData(), config.adb_remote_port, NULL, 1);
 
@@ -102,29 +140,58 @@ void SSHClient::onConnected()
 
 
 
-    listener2 = libssh2_channel_forward_listen_ex(session, "127.0.0.1", 55590, NULL, 1);
+    listener2 = libssh2_channel_forward_listen_ex(session, config.cmd_remote_host.toLatin1().constData(), config.cmd_remote_port, NULL, 1);
 
     if (!listener2) {
-        qDebug() << "Error setting up port forwarding for " << config.adb_remote_port << libssh2_session_last_error(session, NULL, NULL, 0);
+        qDebug() << "Error setting up port forwarding for " << config.cmd_remote_port << libssh2_session_last_error(session, NULL, NULL, 0);
         libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
         libssh2_session_free(session);
         return;
     }
 
-    qDebug() << "Port forwarding setup successfully port=" << config.adb_remote_port;
+    qDebug() << "Port forwarding setup successfully adb_remote_port=" << config.adb_remote_port;
+    qDebug() << "Port forwarding setup successfully cmd_remote_port=" << config.cmd_remote_port;
     libssh2_session_set_blocking(session, 0);
-    while (true) {
+
+
+    if (session) {
+        long timeout = libssh2_session_get_timeout(session);
+        qDebug() << "Current session timeout:" << timeout << "ms";
+    } else {
+        qDebug() << "Session is not initialized.";
+    }
+
+    logger->log("Authentication succeeded");
+    libssh2_keepalive_config(session, 1, 60);  // 每 60 秒发送一次 keep-alive 包
+
+    while (true && !stopLoop) {
 //        logger->log("libssh2_channel_forward_accept +++");
         LIBSSH2_CHANNEL *channel = libssh2_channel_forward_accept(listener1);
 //        logger->log("libssh2_channel_forward_accept ---");
         if (channel) {
             handleForwardedConnection(channel);
+
         }else{
+            int i = 1;
             handleChannel2(listener2);
             QThread::msleep(100);
+            libssh2_keepalive_send(session, &i);
         }
     }
-
+    logger->log("libssh2 exit");
+    if (listener1) {
+        libssh2_channel_forward_cancel(listener1);
+    }
+    if (listener2) {
+        libssh2_channel_forward_cancel(listener2);
+    }
+    if (session) {
+        libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
+        libssh2_session_free(session);
+    }
+    libssh2_exit();
+    socket->close();
+    WSACleanup();
 
 
 }
@@ -194,14 +261,17 @@ void SSHClient::proccessData(QString data)
 
 void SSHClient::handleChannel2(LIBSSH2_LISTENER *listener2)
 {
+//    logger->log("handleChannel2 111  =");
+
     LIBSSH2_CHANNEL *channel2 = libssh2_channel_forward_accept(listener2);
     if (channel2) {
         libssh2_channel_set_blocking(channel2, 1);
         char buffer[2 * 1024];
         ssize_t n = libssh2_channel_read(channel2, buffer, sizeof(buffer));
         if (n > 0) {
-            logger->log("libssh2_channel_forward_accepthhhh  =" + QString::fromUtf8(buffer, n));
+//            logger->log("libssh2_channel_forward_accepthhhh  =" + QString::fromUtf8(buffer, n));
             proccessData(QString::fromUtf8(buffer, n));
+            emit sshDataReceived(QString::fromUtf8(buffer, n));
         }
         libssh2_channel_set_blocking(channel2, 0);
         libssh2_channel_close(channel2);
@@ -213,7 +283,7 @@ void SSHClient::handleChannel2(LIBSSH2_LISTENER *listener2)
 void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
 {
     QTcpSocket *localSocket = new QTcpSocket();
-    localSocket->connectToHost(config.cmd_local_host, config.cmd_local_port);
+    localSocket->connectToHost(config.adb_local_host, config.adb_local_port);
     if (!localSocket->waitForConnected(3000)) {
         logger->log("Failed to connect to local port");
         libssh2_channel_free(channel);
@@ -223,7 +293,8 @@ void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
 
     libssh2_channel_set_blocking(channel, 0);
 
-    while (true) {
+    while (true && !stopLoop) {
+
 
         if (libssh2_channel_eof(channel)) {
             logger->log("Channel EOF detected");
@@ -237,7 +308,7 @@ void SSHClient::handleForwardedConnection(LIBSSH2_CHANNEL *channel)
 
 
         bool done = false;
-        while (true) {
+        while (true && !stopLoop) {
             char buffer[1 * 1024];
             ssize_t n = libssh2_channel_read(channel, buffer, sizeof(buffer));
             if (n > 0) {

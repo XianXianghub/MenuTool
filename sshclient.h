@@ -19,11 +19,13 @@ public:
     SSHClient(Logger * logger);
     ~SSHClient();
     void connectToHost(SshConfig config);
+     void stopLooping() { stopLoop = true; } // 添加一个新的槽函数用于停止循环
 
 private slots:
     void onConnected();
     void onReadyRead();
     void onDisconnected();
+
 signals:
     void startForward(); // 添加信号声明
     // 定义一个信号，用于发送从 SSH 连接中收到的数据
@@ -33,6 +35,8 @@ private:
     void handleChannel2(LIBSSH2_LISTENER *listener2);
     void proccessData(QString data);
     QTcpSocket *socket;
+    bool stopLoop; // 新的成员变量，用于标识是否停止循环
+
 
     SshConfig config;
 
@@ -42,35 +46,7 @@ private:
     Logger *logger; // Add a Logger instance
 
 };
-class SSHClientManager : public QObject
-{
-    Q_OBJECT
 
-public:
-    SSHClientManager(Logger *logger)
-        : logger(logger) {}
 
-    void startSSHClient(const SshConfig &config)
-    {
-        SSHClient *client = new SSHClient(logger);
-        QThread *thread = new QThread();
-
-        client->moveToThread(thread);
-
-        connect(thread, &QThread::started, [client, config]() {
-            client->connectToHost(config);
-        });
-        connect(client, &SSHClient::sshDataReceived, this, &SSHClientManager::forwardSSHData);
-
-        connect(thread, &QThread::finished, thread, &QThread::deleteLater);
-
-        thread->start();
-    }
-signals:
-    // 定义信号，用于转发从 SSHClient 接收到的数据
-    void forwardSSHData(const QString &data);
-private:
-    Logger *logger;
-};
 
 #endif // SSHCLIENT_H
