@@ -1,11 +1,12 @@
+// logger.cpp
 #include "logger.h"
 #include <QDateTime>
 #include <QDir>
 #include <QDebug>
 #include <QCoreApplication>
-#include <QMutex> // 添加这一行
+#include <QMutex>
+#include <QThread>
 
-// 定义一个全局互斥锁
 static QMutex logMutex;
 
 Logger::Logger()
@@ -25,12 +26,10 @@ Logger::Logger()
         }
     }
 
-    // 创建日志文件名
     QString logFileName = logDirPath + "/log_" + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss") + ".txt";
     logFile.setFileName(logFileName);
     qDebug() << "Log file name:" << logFileName;
 
-    // 尝试打开日志文件
     bool fileOpened = logFile.open(QIODevice::WriteOnly | QIODevice::Text);
     qDebug() << "Log file opened:" << fileOpened;
     if (!fileOpened)
@@ -49,27 +48,25 @@ Logger::~Logger()
 
 void Logger::log(const QString &message)
 {
-    // 加锁
-    logMutex.lock();
+    QMutexLocker locker(&logMutex);
 
-    if (!logFile.isOpen())
+    if (isWiteFile && !logFile.isOpen())
     {
         qDebug() << "Log file is not open!";
-        logMutex.unlock();
         return;
     }
 
-    QTextStream logStream(&logFile);
-    QString logMessage = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz") + " - " + message;
-    logStream << logMessage << "\n";
+
+    QString logMessage = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz") + " ["+QString::number(reinterpret_cast<quintptr>(QThread::currentThreadId()))+ "] " + message;
     qDebug() << logMessage;
-    if (logStream.status() != QTextStream::Ok)
-    {
-        qDebug() << "Failed to write to log file:" << logStream.status();
+    emit newLogMessage(logMessage);  // Emit the signal with the new log message
+    if(isWiteFile){
+        QTextStream logStream(&logFile);
+        logStream << logMessage << "\n";
+        if (logStream.status() != QTextStream::Ok)
+        {
+            qDebug() << "Failed to write to log file:" << logStream.status();
+        }
+        logFile.flush();
     }
-
-    logFile.flush();  // Ensure the buffer is written to the file
-
-    // 解锁
-    logMutex.unlock();
 }

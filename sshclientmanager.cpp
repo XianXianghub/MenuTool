@@ -41,14 +41,16 @@ void SSHClientManager::restartSSHClientWithConfig(const QString &name)
         SSHClient *client = clientThreadPair.first;
         QThread *thread = clientThreadPair.second;
         client->stopLooping(); // 调用停止循环的函数
-        disconnect(client, &SSHClient::sshDataReceived, this, &SSHClientManager::forwardSSHData);
 
+        QThread::msleep(1000);
+
+
+        disconnect(client, &SSHClient::sshDataReceived, this, &SSHClientManager::forwardSSHData);
 
         thread->quit();
         thread->wait();
-          QThread::msleep(2000);
-        delete client;
-        delete thread;
+        client->deleteLater();
+        thread->deleteLater();
 
         clients.remove(name);
 
