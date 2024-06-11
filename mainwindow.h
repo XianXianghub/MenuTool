@@ -8,7 +8,6 @@
 #include <QDir>
 #include "toolutils.h"
 #include <QDebug>
-#include "dialog.h"
 #include "qxtglobalshortcut.h"
 #include <QMessageBox>
 #include <QScreen>
@@ -21,9 +20,9 @@
 #include <QString>
 #include <QHash>
 #include <QProcess>
-#include "SshTunnelConfigDialog.h"
 #include "sshclientmanager.h"
 #include "sshconfig.h"
+#include "logdialog.h"
 
 
 namespace Ui {
@@ -40,7 +39,6 @@ public:
 
     void CreatTrayMenu();
     void CreatTrayIcon();
-    void proccessData(QString data);
 
     QSystemTrayIcon *myTrayIcon;
 
@@ -49,7 +47,8 @@ public:
     QAction *getDateAction;
     QAction *getCommentAction;
     QAction *getMacAction;
-    QAction *openSshConfigAction;
+    QAction *restartSshAction;
+    QAction *opennlogAction;
 
     QAction *getSerialAction;
     QAction *quitAction;
@@ -64,17 +63,15 @@ private slots:
     void get_CommentAction();
     void get_w2l_action();
     void quit_action();
-    void openSshConfigPage();
-
+    void restartSshSlot();
+    void openlogSlot();
     void hotkey_press_action();
 
     void on_pushButton_clicked();
 
-    void server_New_Connect();
 
-    void Read_Data();
 
-    void disConnected();
+
     void handleForwardedSSHData(const QString &data);
 
 private:
@@ -85,7 +82,8 @@ private:
     Logger *logger;
     QTcpSocket *SShsocket;
     QHash<QString , QTcpSocket*> qhash;
-     SSHClientManager *mSSHClientManager;
+    SSHClientManager *mSSHClientManager;
+    LogDialog *logDialog;
 
     QList<QTcpSocket*> clientSocket;
     QString xshell_ip = "";

@@ -35,20 +35,24 @@ void SSHClientManager::restartAllSSHClients()
 
 void SSHClientManager::restartSSHClientWithConfig(const QString &name)
 {
+    logger->log("restartSSHClientWithConfig name:" + name);
+
     if (clients.contains(name))
     {
         auto clientThreadPair = clients[name];
         SSHClient *client = clientThreadPair.first;
         QThread *thread = clientThreadPair.second;
         client->stopLooping(); // 调用停止循环的函数
-        disconnect(client, &SSHClient::sshDataReceived, this, &SSHClientManager::forwardSSHData);
 
+        QThread::msleep(1000);
+
+
+        disconnect(client, &SSHClient::sshDataReceived, this, &SSHClientManager::forwardSSHData);
 
         thread->quit();
         thread->wait();
-          QThread::msleep(2000);
-        delete client;
-        delete thread;
+        client->deleteLater();
+        thread->deleteLater();
 
         clients.remove(name);
 
@@ -62,6 +66,7 @@ void SSHClientManager::restartSSHClientWithConfig(const QString &name)
                 if (config.name == name)
                 {
                     startSSHClient(config);
+                     QThread::msleep(2000);
                     break;
                 }
             }

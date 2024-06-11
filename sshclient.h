@@ -36,9 +36,10 @@ private:
     void handleChannel2(LIBSSH2_LISTENER *listener2);
     void proccessData(QString data);
     QTcpSocket *socket;
-    bool stopLoop; // 新的成员变量，用于标识是否停止循环
+    bool stopLoop = false; // 新的成员变量，用于标识是否停止循环
     QElapsedTimer keepAliveTimer;  // 添加此行
-      qint64 keepAliveInterval;      // 添加此行
+    qint64 keepAliveInterval;      // 添加此行
+    bool hasConncted = false;
 
     SshConfig config;
 

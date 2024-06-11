@@ -38,19 +38,20 @@ SSHClient::~SSHClient()
 
 void SSHClient::connectToHost(SshConfig config)
 {
-    qDebug() << "sshclient Name:" << config.name;
-    qDebug() << "sshclient SSH Host:" << config.ssh_host;
-    qDebug() << "sshclient SSH Port:" << config.ssh_port;
-    qDebug() << "sshclient SSH User:" << config.ssh_user;
-    qDebug() << "sshclient SSH Password:" << config.ssh_pwd;
-    qDebug() << "sshclient ADB Remote Host:" << config.adb_remote_host;
-    qDebug() << "sshclient ADB Remote Port:" << config.adb_remote_port;
-    qDebug() << "sshclient ADB Local Host:" << config.adb_local_host;
-    qDebug() << "sshclient ADB Local Port:" << config.adb_local_port;
-    qDebug() << "sshclient CMD Remote Port:" << config.cmd_remote_host;
-    qDebug() << "sshclient CMD Remote Port:" << config.cmd_remote_port;
+    logger->log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+    logger->log("sshclient Name: " + config.name);
+    logger->log("sshclient SSH Host: " + config.ssh_host);
+    logger->log("sshclient SSH Port: " + QString::number(config.ssh_port));
+    logger->log("sshclient SSH User: " + config.ssh_user);
+    logger->log("sshclient SSH Password: " + config.ssh_pwd);
+    logger->log("sshclient ADB Remote Host: " + config.adb_remote_host);
+    logger->log("sshclient ADB Remote Port: " + QString::number(config.adb_remote_port));
+    logger->log("sshclient ADB Local Host: " + config.adb_local_host);
+    logger->log("sshclient ADB Local Port: " + QString::number(config.adb_local_port));
+    logger->log("sshclient CMD Remote Host: " + config.cmd_remote_host);
+    logger->log("sshclient CMD Remote Port: " + QString::number(config.cmd_remote_port));
+    logger->log("-------------------------------------------------------------------------");
 
-    qDebug() << "--------------------------";
     this->config = config;
     socket = new QTcpSocket();
     socket->setProxy(QNetworkProxy::NoProxy);
@@ -59,36 +60,34 @@ void SSHClient::connectToHost(SshConfig config)
 
     connect(socket, &QTcpSocket::connected, this, &SSHClient::onConnected);
     connect(socket, &QTcpSocket::disconnected, this, &SSHClient::onDisconnected);
-    qDebug() << "connectToHost" << config.ssh_host << config.ssh_port;
+    logger->log("connectToHost" + config.ssh_host +":"+ QString::number(config.ssh_port));
     socket->connectToHost(QHostAddress(config.ssh_host), config.ssh_port);
-    if (!socket->waitForConnected(3000)) {
-        qDebug() << "connectToHost " << config.ssh_host << config.ssh_port << " Connection timed out.";
-        // 处理连接超时的情况
-    } else {
-        qDebug() << "Connected!";
-        // 连接成功后的处理
-    }
+//    if (!hasConncted && !socket->waitForConnected(3000)) {
+//        logger->log("connectToHost " + config.ssh_host + QString::number(config.ssh_port) + " Connection timed out.");
+//        // 处理连接超时的情况
+//    }
 }
 
 void SSHClient::onConnected()
 {
-    logger->log("Connected to host");
+    hasConncted = true;
+    logger->log("Connected to host "+config.ssh_host);
     session = libssh2_session_init();
     if (!session) {
-        qDebug() << "Failed to create session";
+        logger->log("Failed to create session");
         return;
     }
 
     int sock = socket->socketDescriptor();
     int rc = libssh2_session_handshake(session, sock);
     if (rc) {
-        qDebug() << "Failure establishing SSH session:" << rc;
+       logger->log("Failure establishing SSH session:" +  QString::number(rc));
         return;
     }
 
     rc = libssh2_userauth_password(session, config.ssh_user.toStdString().c_str(), config.ssh_pwd.toStdString().c_str());
     if (rc) {
-        qDebug() << "Authentication by password failed.";
+        logger->log("Authentication by password failed.");
         libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
         libssh2_session_free(session);
         return;
@@ -99,13 +98,13 @@ void SSHClient::onConnected()
     LIBSSH2_CHANNEL* channel = libssh2_channel_open_session(session);
     if (!channel)
     {
-        qDebug() <<"Failed to open channel session\n";
+        logger->log("Failed to open channel session\n");
         return ;
     }
     rc = libssh2_channel_exec(channel, QString("echo %1 > ~/xetc/port.txt").arg(config.cmd_remote_port).toStdString().c_str());
     if (rc != 0)
     {
-        qDebug() << "Failed to execute the first command\n";
+        logger->log("Failed to execute the first command\n");
         return;
     }
 
@@ -115,13 +114,13 @@ void SSHClient::onConnected()
     channel = libssh2_channel_open_session(session);
     if (!channel)
     {
-        qDebug() << "Failed to open a new channel\n";
+        logger->log("Failed to open a new channel\n");
         return;
     }
     rc = libssh2_channel_exec(channel, QString("echo %1 > ~/xetc/adb_port.txt").arg(config.adb_remote_port).toStdString().c_str());
     if (rc != 0)
     {
-        qDebug() << "Failed to execute the second command\n";
+        logger->log("Failed to execute the second command\n");
         return;
     }
 //    libssh2_channel_close(channel);
@@ -132,7 +131,7 @@ void SSHClient::onConnected()
     listener1 = libssh2_channel_forward_listen_ex(session, config.adb_remote_host.toLatin1().constData(), config.adb_remote_port, NULL, 1);
 
     if (!listener1) {
-        qDebug() << "Error setting up port forwarding for " << config.adb_remote_port << libssh2_session_last_error(session, NULL, NULL, 0);
+        logger->log("Error setting up port forwarding for " +QString::number(config.adb_remote_port) +QString::number(libssh2_session_last_error(session, NULL, NULL, 0)));
         libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
         libssh2_session_free(session);
         return;
@@ -143,28 +142,22 @@ void SSHClient::onConnected()
     listener2 = libssh2_channel_forward_listen_ex(session, config.cmd_remote_host.toLatin1().constData(), config.cmd_remote_port, NULL, 1);
 
     if (!listener2) {
-        qDebug() << "Error setting up port forwarding for " << config.cmd_remote_port << libssh2_session_last_error(session, NULL, NULL, 0);
+        logger->log("Error setting up port forwarding for " +QString::number(config.cmd_remote_port) +QString::number(libssh2_session_last_error(session, NULL, NULL, 0)));
         libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
         libssh2_session_free(session);
         return;
     }
 
-    qDebug() << "Port forwarding setup successfully adb_remote_port=" << config.adb_remote_port;
-    qDebug() << "Port forwarding setup successfully cmd_remote_port=" << config.cmd_remote_port;
+    logger->log("Port forwarding setup successfully adb_remote_port="+ QString::number(config.adb_remote_port));
+    logger->log("Port forwarding setup successfully cmd_remote_port="+ QString::number(config.cmd_remote_port));
     libssh2_session_set_blocking(session, 0);
 
 
-    if (session) {
-        long timeout = libssh2_session_get_timeout(session);
-        qDebug() << "Current session timeout:" << timeout << "ms";
-    } else {
-        qDebug() << "Session is not initialized.";
-    }
 
     logger->log("Authentication succeeded");
-    libssh2_keepalive_config(session, 1, 60);  // 每 60 秒发送一次 keep-alive 包
-    keepAliveInterval = 60000;  // 60 秒
-      keepAliveTimer.start();
+    keepAliveInterval = 100;
+    libssh2_keepalive_config(session, 1, keepAliveInterval);
+    keepAliveTimer.start();
 
     while (true && !stopLoop) {
 //        logger->log("libssh2_channel_forward_accept +++");
@@ -175,16 +168,21 @@ void SSHClient::onConnected()
 
         }else{
             handleChannel2(listener2);
-            if (keepAliveTimer.elapsed() >= keepAliveInterval) {
+            if (!socket->waitForConnected(3000)) {
+                logger->log("socket disconnect");
+                break;
+            }
+            if (keepAliveTimer.elapsed() >= keepAliveInterval*1000) {
                int nextTime = 0;
                libssh2_keepalive_send(session, &nextTime);
                keepAliveTimer.restart();  // 重置 keep-alive 计时器
-               qDebug() << "Keep-alive sent, next keep-alive in" << nextTime << "seconds";
+               logger->log("Keep-alive sent, next keep-alive in "+ QString::number(nextTime) + " seconds");
             }
             QThread::msleep(100);
         }
     }
-    logger->log("libssh2 exit");
+    int returnval = stopLoop?1:0;
+    logger->log("libssh2 exit=="+QString::number(returnval));
     if (listener1) {
         libssh2_channel_forward_cancel(listener1);
     }
@@ -196,6 +194,7 @@ void SSHClient::onConnected()
         libssh2_session_free(session);
     }
     libssh2_exit();
+    socket->disconnect();
     socket->close();
     WSACleanup();
 
@@ -233,25 +232,7 @@ void SSHClient::proccessData(QString data)
             strPicPath.replace("/", "\\");
             QProcess process;
             process.startDetached("D:\\androidstudio\\bin\\studio64.exe", QStringList() << QString("%1").arg(strPicPath));
-        }
-        else if (QString::compare(list[0], "ov") == 0)
-        {/*
-            logger->log("proccessData vs==");
-            if (!vscode_ip.isEmpty())
-            {
-                logger->log("proccessData isEmpty==");
-                for (int i = 0; i < clientSocket.length(); ++i)
-                {
-                    QString IP_Port = tr("[%1:%2]:").arg(clientSocket[i]->peerAddress().toString().mid(7)).arg(clientSocket[i]->peerPort());
-                    if (QString::compare(IP_Port, vscode_ip) == 0)
-                    {
-                        QByteArray ba = list[1].toUtf8();
-                        clientSocket[i]->write(ba);
-                    }
-                }
-            }*/
-        }
-        else if (QString::compare(list[0], "ob") == 0)
+        }else if (QString::compare(list[0], "ob") == 0)
         {
             logger->log("proccessData list[1]==" + list[1] + " " + list[2]);
             QString strPicPath = list[1];

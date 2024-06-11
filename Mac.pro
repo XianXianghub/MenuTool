@@ -17,23 +17,21 @@ CONFIG += c++11
 SOURCES += main.cpp\
         mainwindow.cpp \
     toolutils.cpp \
-    dialog.cpp \
     xmlutils.cpp \
     logger.cpp \
-    sshtunnelconfigdialog.cpp \
     sshclient.cpp \
-    sshclientmanager.cpp
+    sshclientmanager.cpp \
+    logdialog.cpp
 
 HEADERS  += mainwindow.h \
     toolutils.h \
-    dialog.h \
     xmlutils.h \
     constlist.h \
     logger.h \
-    sshtunnelconfigdialog.h \
     sshclient.h \
     sshconfig.h \
-    sshclientmanager.h
+    sshclientmanager.h \
+    logdialog.h
 FORMS    += mainwindow.ui \
     dialog.ui \
     sshtunnelconfigdialog.ui
@@ -49,9 +47,9 @@ LIBS += -lws2_32
 #LIBS += $$PWD/lib/libssh2.a
 
 LIBS += -L$$PWD/lib/ -llibssh2
-LIBS += -L$$PWD/lib/ -llibeay32
-LIBS += -L$$PWD/lib/ -lssleay32
-LIBS += -L$$PWD/lib/ -lzlib
+#LIBS += -L$$PWD/lib/ -llibeay32
+#LIBS += -L$$PWD/lib/ -lssleay32
+#LIBS += -L$$PWD/lib/ -lzlib
 
 
 #win32: LIBS += $$PWD/lib/libssh2.dll
