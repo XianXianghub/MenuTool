@@ -1,100 +1,102 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-
 #include <QCoreApplication>
-
+#include <QClipboard>
+#include <QMenu>
+#include <QMessageBox>
+#include <QSystemTrayIcon>
+#include <QFile>
+#include <QDir>
+#include <QKeySequence>
+#include <QDebug>
+#include <QCloseEvent>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    tool(new ToolUtils(QApplication::clipboard())),  // 获取系统剪贴板指针
+    logger(new Logger()),
+    logDialog(new LogDialog()),
+    mSSHClientManager(new SSHClientManager(logger))
 {
     ui->setupUi(this);
     this->setWindowIcon(QIcon("./pkq.ico"));
-    CreatTrayIcon();
-    QClipboard *clipboard = QApplication::clipboard();   //获取系统剪贴板指针
-    tool= new ToolUtils(clipboard);
-    logger = new Logger();
-    logDialog = new LogDialog();
+
+    // 创建托盘图标和菜单
+    createTrayIcon();
+
+    // 设置全局快捷键
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
-    if(shortcut->setShortcut(QKeySequence("F1")))
-    {
-        connect(shortcut, SIGNAL(activated()), this, SLOT(hotkey_press_action()));
-    }
-    else
-    {
+    if (shortcut->setShortcut(QKeySequence("F1"))) {
+        connect(shortcut, &QxtGlobalShortcut::activated, this, &MainWindow::hotkeyPress);
+    } else {
         logger->log("快捷键已占用");
-        QMessageBox::information(NULL, "Title", "1111快捷键已占用", QMessageBox::Yes, QMessageBox::Yes);
+        QMessageBox::information(this, "Title", "快捷键已占用", QMessageBox::Yes);
     }
 
-   connect(logger, &Logger::newLogMessage, logDialog, &LogDialog::appendLog);
+    // 日志消息连接到日志对话框
+    connect(logger, &Logger::newLogMessage, logDialog, &LogDialog::appendLog);
 
-   mSSHClientManager = new SSHClientManager(logger);
-   connect(mSSHClientManager, &SSHClientManager::forwardSSHData, this, &MainWindow::handleForwardedSSHData);
+    // SSH 客户端管理器
+    connect(mSSHClientManager, &SSHClientManager::forwardSSHData, this, &MainWindow::handleForwardedSSHData);
 
-   QString configPath = QCoreApplication::applicationDirPath() + "/remoteConfig.xml";
-   mSSHClientManager->loadConfigsAndStartClients(configPath);
-}
-void MainWindow::handleForwardedSSHData(const QString &data)
-{
-    qDebug() << "Received SSH data in MainWindow:" << data;
+    // 加载 SSH 配置并启动客户端
+    QString configPath = QCoreApplication::applicationDirPath() + "/remoteConfig.xml";
+    mSSHClientManager->loadConfigsAndStartClients(configPath);
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete logger; // Clean up Logger
+    delete logger; // 清理 Logger
 }
 
-void MainWindow::CreatTrayMenu()
+void MainWindow::handleForwardedSSHData(const QString &data)
+{
+    qDebug() << "Received SSH data in MainWindow:" << data;
+}
+
+void MainWindow::createTrayMenu()
 {
     getDateAction = new QAction("time", this);
     getCommentAction = new QAction("Comment", this);
     getMacAction = new QAction("mac", this);
     getSerialAction = new QAction("serial", this);
     w2lAction = new QAction("w2l", this);
-    restartSshAction = new QAction("restart ssh", this);
-    opennlogAction  = new QAction("log", this);
+    restartSshAction = new QAction("ssh", this);
+    openLogAction = new QAction("log", this);
     quitAction = new QAction("Quit(&Q)", this);
 
-    this->connect(getDateAction, SIGNAL(triggered()), this, SLOT(get_datetime_action()));
-    this->connect(w2lAction, SIGNAL(triggered()), this, SLOT(get_w2l_action()));
-    this->connect(restartSshAction, SIGNAL(triggered()), this, SLOT(restartSshSlot()));
-    this->connect(opennlogAction, SIGNAL(triggered()), this, SLOT(openlogSlot()));
+    connect(getDateAction, &QAction::triggered, this, &MainWindow::getDateTime);
+    connect(w2lAction, &QAction::triggered, this, &MainWindow::getW2L);
+    connect(restartSshAction, &QAction::triggered, this, &MainWindow::restartSsh);
+    connect(openLogAction, &QAction::triggered, this, &MainWindow::openLog);
+    connect(quitAction, &QAction::triggered, this, &MainWindow::quit);
+    connect(getCommentAction, &QAction::triggered, this, &MainWindow::getComment);
 
-    this->connect(quitAction, SIGNAL(triggered()), this, SLOT(quit_action()));
-    this->connect(getCommentAction, SIGNAL(triggered()), this, SLOT(get_CommentAction()));
-
-    myMenu = new QMenu((QWidget*)QApplication::desktop());
+    myMenu = new QMenu();
     myMenu->addAction(getCommentAction);
     myMenu->addAction(getDateAction);
     myMenu->addAction(w2lAction);
     myMenu->addAction(restartSshAction);
-    myMenu->addAction(opennlogAction);
-
+    myMenu->addAction(openLogAction);
     myMenu->addSeparator();
     myMenu->addAction(quitAction);
 
     QFile qss("stylesheet.qss");
-    if (qss.open(QFile::ReadOnly))
-    {
+    if (qss.open(QFile::ReadOnly)) {
         QString style = QLatin1String(qss.readAll());
         myMenu->setStyleSheet(style);
         qss.close();
     }
 }
 
-void MainWindow::CreatTrayIcon()
+void MainWindow::createTrayIcon()
 {
-    CreatTrayMenu();
+    createTrayMenu();
 
-    if (!QSystemTrayIcon::isSystemTrayAvailable())
-    {
+    if (!QSystemTrayIcon::isSystemTrayAvailable()) {
         return;
     }
 
@@ -105,88 +107,76 @@ void MainWindow::CreatTrayIcon()
     myTrayIcon->showMessage("tips", "SystemTray", QSystemTrayIcon::Information, 500);
     myTrayIcon->setContextMenu(myMenu);
     myTrayIcon->show();
-    this->connect(myTrayIcon, SIGNAL(activated(QSystemTrayIcon::ActivationReason)), this, SLOT(iconActivated(QSystemTrayIcon::ActivationReason)));
+    connect(myTrayIcon, &QSystemTrayIcon::activated, this, &MainWindow::iconActivated);
 }
-
 
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     isQuit = true;
-    switch(reason)
-    {
-    case QSystemTrayIcon::Trigger:
-    case QSystemTrayIcon::DoubleClick:
-        break;
-    case QSystemTrayIcon::MiddleClick:
-        myTrayIcon->showMessage("tips", "SystemTray", QSystemTrayIcon::Information, 500);
-        break;
-    default:
-        break;
+    switch(reason) {
+        case QSystemTrayIcon::Trigger:
+        case QSystemTrayIcon::DoubleClick:
+            break;
+        case QSystemTrayIcon::MiddleClick:
+            myTrayIcon->showMessage("tips", "SystemTray", QSystemTrayIcon::Information, 500);
+            break;
+        default:
+            break;
     }
 }
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (myTrayIcon->isVisible())
-    {
+    if (myTrayIcon->isVisible()) {
         myTrayIcon->showMessage("tips", "SystemTray", QSystemTrayIcon::Information, 500);
-        hide();     //最小化
+        hide(); // 最小化
         event->ignore();
-    }
-    else
-    {
+    } else {
         event->accept();
     }
 }
 
-void MainWindow::get_datetime_action()
+void MainWindow::getDateTime()
 {
     QString time = tool->getDatetime();
     tool->setClip(time);
 }
 
-void MainWindow::get_CommentAction()
+void MainWindow::getComment()
 {
     QString time = tool->getDatetime();
     QString str = "/* xiangsq " + time + " */";
     tool->setClip(str);
 }
 
-void MainWindow::get_w2l_action()
+void MainWindow::getW2L()
 {
-    QString originalText = tool->getfromClip().trimmed(); //获取剪贴板上文本信息
+    QString originalText = tool->getfromClip().trimmed(); // 获取剪贴板上文本信息
     QString path = QDir::fromNativeSeparators(originalText);
     tool->setClip(path);
 }
 
-void MainWindow::quit_action()
+void MainWindow::quit()
 {
-    if(isQuit) qApp->quit();
-    else myMenu->hide();
+    if (isQuit) {
+        qApp->quit();
+    } else {
+        myMenu->hide();
+    }
 }
 
-void MainWindow::restartSshSlot()
+void MainWindow::restartSsh()
 {
-//    mSSHClientManager->restartSSHClientWithConfig("90");
-//    mSSHClientManager->restartSSHClientWithConfig("87");
-//    mSSHClientManager->restartSSHClientWithConfig("80");
     mSSHClientManager->restartAllSSHClients();
 }
 
-void MainWindow::openlogSlot()
+void MainWindow::openLog()
 {
- logDialog->show();
+    logDialog->show();
 }
 
-void MainWindow::hotkey_press_action()
+void MainWindow::hotkeyPress()
 {
     isQuit = false;
     myMenu->exec(QCursor::pos());
 }
-
-void MainWindow::on_pushButton_clicked()
-{
-    logger->log("on_pushButton_clicked");
-}
-
-

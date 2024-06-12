@@ -60,7 +60,7 @@ void SSHClient::connectToHost(SshConfig config)
 
     connect(socket, &QTcpSocket::connected, this, &SSHClient::onConnected);
     connect(socket, &QTcpSocket::disconnected, this, &SSHClient::onDisconnected);
-    logger->log("connectToHost" + config.ssh_host +":"+ QString::number(config.ssh_port));
+    logger->log("connectToHost " + config.ssh_host +":"+ QString::number(config.ssh_port));
     socket->connectToHost(QHostAddress(config.ssh_host), config.ssh_port);
 //    if (!hasConncted && !socket->waitForConnected(3000)) {
 //        logger->log("connectToHost " + config.ssh_host + QString::number(config.ssh_port) + " Connection timed out.");

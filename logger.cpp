@@ -11,30 +11,32 @@ static QMutex logMutex;
 
 Logger::Logger()
 {
-    QString logDirPath = QCoreApplication::applicationDirPath() + "/logs";
-    qDebug() << "Log directory path:" << logDirPath;
-    QDir logDir(logDirPath);
+    if(isWiteFile){
+        QString logDirPath = QCoreApplication::applicationDirPath() + "/logs";
+        qDebug() << "Log directory path:" << logDirPath;
+        QDir logDir(logDirPath);
 
-    if (!logDir.exists())
-    {
-        bool dirCreated = logDir.mkpath(logDirPath);
-        qDebug() << "Log directory created:" << dirCreated;
-        if (!dirCreated)
+        if (!logDir.exists())
         {
-            qDebug() << "Failed to create log directory:" << logDirPath;
-            return;
+            bool dirCreated = logDir.mkpath(logDirPath);
+            qDebug() << "Log directory created:" << dirCreated;
+            if (!dirCreated)
+            {
+                qDebug() << "Failed to create log directory:" << logDirPath;
+                return;
+            }
         }
-    }
 
-    QString logFileName = logDirPath + "/log_" + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss") + ".txt";
-    logFile.setFileName(logFileName);
-    qDebug() << "Log file name:" << logFileName;
+        QString logFileName = logDirPath + "/log_" + QDateTime::currentDateTime().toString("yyyy-MM-dd_hh-mm-ss") + ".txt";
+        logFile.setFileName(logFileName);
+        qDebug() << "Log file name:" << logFileName;
 
-    bool fileOpened = logFile.open(QIODevice::WriteOnly | QIODevice::Text);
-    qDebug() << "Log file opened:" << fileOpened;
-    if (!fileOpened)
-    {
-        qDebug() << "Failed to open log file:" << logFileName;
+        bool fileOpened = logFile.open(QIODevice::WriteOnly | QIODevice::Text);
+        qDebug() << "Log file opened:" << fileOpened;
+        if (!fileOpened)
+        {
+            qDebug() << "Failed to open log file:" << logFileName;
+        }
     }
 }
 
