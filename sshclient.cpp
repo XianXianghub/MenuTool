@@ -111,31 +111,31 @@ void SSHClient::onConnected()
     libssh2_channel_close(channel);
     libssh2_channel_free(channel);
 
-    channel = libssh2_channel_open_session(session);
-    if (!channel)
-    {
-        logger->log("Failed to open a new channel\n");
-        return;
-    }
-    rc = libssh2_channel_exec(channel, QString("echo %1 > ~/xetc/adb_port.txt").arg(config.adb_remote_port).toStdString().c_str());
-    if (rc != 0)
-    {
-        logger->log("Failed to execute the second command\n");
-        return;
-    }
+//    channel = libssh2_channel_open_session(session);
+//    if (!channel)
+//    {
+//        logger->log("Failed to open a new channel\n");
+//        return;
+//    }
+//    rc = libssh2_channel_exec(channel, QString("echo %1 > ~/xetc/adb_port.txt").arg(config.adb_remote_port).toStdString().c_str());
+//    if (rc != 0)
+//    {
+//        logger->log("Failed to execute the second command\n");
+//        return;
+//    }
 //    libssh2_channel_close(channel);
 //    libssh2_channel_free(channel);
 
 
 
-    listener1 = libssh2_channel_forward_listen_ex(session, config.adb_remote_host.toLatin1().constData(), config.adb_remote_port, NULL, 1);
+//    listener1 = libssh2_channel_forward_listen_ex(session, config.adb_remote_host.toLatin1().constData(), config.adb_remote_port, NULL, 1);
 
-    if (!listener1) {
-        logger->log("Error setting up port forwarding for " +QString::number(config.adb_remote_port) +QString::number(libssh2_session_last_error(session, NULL, NULL, 0)));
-        libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
-        libssh2_session_free(session);
-        return;
-    }
+//    if (!listener1) {
+//        logger->log("Error setting up port forwarding for " +QString::number(config.adb_remote_port) +QString::number(libssh2_session_last_error(session, NULL, NULL, 0)));
+//        libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
+//        libssh2_session_free(session);
+//        return;
+//    }
 
 
 
@@ -148,7 +148,7 @@ void SSHClient::onConnected()
         return;
     }
 
-    logger->log("Port forwarding setup successfully adb_remote_port="+ QString::number(config.adb_remote_port));
+//    logger->log("Port forwarding setup successfully adb_remote_port="+ QString::number(config.adb_remote_port));
     logger->log("Port forwarding setup successfully cmd_remote_port="+ QString::number(config.cmd_remote_port));
     libssh2_session_set_blocking(session, 0);
 
@@ -161,12 +161,12 @@ void SSHClient::onConnected()
 
     while (true && !stopLoop) {
 //        logger->log("libssh2_channel_forward_accept +++");
-        LIBSSH2_CHANNEL *channel = libssh2_channel_forward_accept(listener1);
+//        LIBSSH2_CHANNEL *channel = libssh2_channel_forward_accept(listener1);
 //        logger->log("libssh2_channel_forward_accept ---");
-        if (channel) {
-            handleForwardedConnection(channel);
+//        if (channel) {
+//            handleForwardedConnection(channel);
 
-        }else{
+//        }else{
             handleChannel2(listener2);
             if (!socket->waitForConnected(3000)) {
                 logger->log("socket disconnect");
@@ -179,7 +179,7 @@ void SSHClient::onConnected()
                logger->log("Keep-alive sent, next keep-alive in "+ QString::number(nextTime) + " seconds");
             }
             QThread::msleep(100);
-        }
+//        }
     }
     int returnval = stopLoop?1:0;
     logger->log("libssh2 exit=="+QString::number(returnval));
