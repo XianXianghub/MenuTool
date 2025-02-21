@@ -42,7 +42,7 @@ void SSHClientManager::restartSSHClientWithConfig(const QString &name)
         auto clientThreadPair = clients[name];
         SSHClient *client = clientThreadPair.first;
         QThread *thread = clientThreadPair.second;
-        client->stopLooping(); // 调用停止循环的函数
+        client->stopLooping();
 
         QThread::msleep(1000);
 
@@ -56,11 +56,9 @@ void SSHClientManager::restartSSHClientWithConfig(const QString &name)
 
         clients.remove(name);
 
-        // 重新解析配置文件
         SSHConfigParser parser;
         if (parser.loadFromFile(configFilePath))
         {
-            // 在重新解析后获取最新的配置
             for (const SshConfig &config : parser.configs)
             {
                 if (config.name == name)
@@ -85,6 +83,8 @@ void SSHClientManager::loadConfigsAndStartClients(const QString &configFilePath)
     {
         for (const SshConfig &config : parser.configs)
         {
+            QThread::msleep(100);
+
             startSSHClient(config);
         }
     }

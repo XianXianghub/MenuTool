@@ -17,6 +17,9 @@
 #include <QProcess>
 #include "sshclientmanager.h"
 #include "logdialog.h"
+#include "MessageDialog.h"
+#include <QDateTime>
+#include "ConfigParser.h"
 
 namespace Ui {
 class MainWindow;
@@ -45,12 +48,14 @@ private:
     QAction *getSerialAction;
     QAction *quitAction;
     QAction *w2lAction;
+    QAction *stringAction;
+
     ToolUtils *tool;
     Logger *logger;
     SSHClientManager *mSSHClientManager;
     LogDialog *logDialog;
     bool isQuit = false;
-
+    QList<Config> configs;
 protected:
     void closeEvent(QCloseEvent *event) override;
 
@@ -59,6 +64,7 @@ private slots:
     void getDateTime();
     void getComment();
     void getW2L();
+    void exuteString();
     void quit();
     void restartSsh();
     void openLog();

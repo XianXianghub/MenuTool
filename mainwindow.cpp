@@ -11,6 +11,8 @@
 #include <QKeySequence>
 #include <QDebug>
 #include <QCloseEvent>
+#include <QThread>
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -44,6 +46,18 @@ MainWindow::MainWindow(QWidget *parent) :
     // 加载 SSH 配置并启动客户端
     QString configPath = QCoreApplication::applicationDirPath() + "/remoteConfig.xml";
     mSSHClientManager->loadConfigsAndStartClients(configPath);
+
+
+    QString filePath = QCoreApplication::applicationDirPath() + "/client.xml";
+
+    // 创建 ConfigParser 对象
+    ConfigParser parser(filePath);
+
+    // 获取解析后的配置列表
+    configs = parser.parseConfigFile();
+
+
+
 }
 
 MainWindow::~MainWindow()
@@ -54,7 +68,41 @@ MainWindow::~MainWindow()
 
 void MainWindow::handleForwardedSSHData(const QString &data)
 {
-    qDebug() << "Received SSH data in MainWindow:" << data;
+    QString project = "";
+
+     logger->log("Received SSH data:"+ data);
+     if (data.startsWith("__compile")){
+        QStringList list = data.split("__");
+        if(list.size() > 3){
+            for (const Config &config : configs) {
+                qDebug() << "Name:" << config.name
+                         << "IP:" << config.ip
+                         << "Project:" << config.project;
+                QStringList projectList = config.project.split(",");
+                if(projectList.size()> 0 && projectList.contains(list[2])){
+
+                    if (QString::compare(config.name, "xsq") == 0){
+
+                        if (data.startsWith("__compile_success")){
+                            MessageDialog *dialog = MessageDialog::getInstance();
+                            dialog->showMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译成功 \n"+"文件名:"+list[3], MessageDialog::Success);
+                        }else{
+                            MessageDialog *dialog = MessageDialog::getInstance();
+                            dialog->showMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译失败 \n"+"Error msg:"+list[3], MessageDialog::Failure);
+                        }
+                    }else{
+                        qDebug() << "send IP:" << config.ip
+                                 << "Project:" << config.project;
+                    }
+                }
+
+
+            }
+
+
+
+        }
+     }
 }
 
 void MainWindow::createTrayMenu()
@@ -64,12 +112,16 @@ void MainWindow::createTrayMenu()
     getMacAction = new QAction("mac", this);
     getSerialAction = new QAction("serial", this);
     w2lAction = new QAction("w2l", this);
+    stringAction = new QAction("string", this);
+
     restartSshAction = new QAction("ssh", this);
     openLogAction = new QAction("log", this);
     quitAction = new QAction("Quit(&Q)", this);
 
     connect(getDateAction, &QAction::triggered, this, &MainWindow::getDateTime);
     connect(w2lAction, &QAction::triggered, this, &MainWindow::getW2L);
+    connect(stringAction, &QAction::triggered, this, &MainWindow::exuteString);
+
     connect(restartSshAction, &QAction::triggered, this, &MainWindow::restartSsh);
     connect(openLogAction, &QAction::triggered, this, &MainWindow::openLog);
     connect(quitAction, &QAction::triggered, this, &MainWindow::quit);
@@ -79,6 +131,7 @@ void MainWindow::createTrayMenu()
     myMenu->addAction(getCommentAction);
     myMenu->addAction(getDateAction);
     myMenu->addAction(w2lAction);
+    myMenu->addAction(stringAction);
     myMenu->addAction(restartSshAction);
     myMenu->addAction(openLogAction);
     myMenu->addSeparator();
@@ -154,6 +207,19 @@ void MainWindow::getW2L()
     QString originalText = tool->getfromClip().trimmed(); // 获取剪贴板上文本信息
     QString path = QDir::fromNativeSeparators(originalText);
     tool->setClip(path);
+}
+
+void MainWindow::exuteString()
+{
+//    QString origin = "setTitle(R.string.dock_charge);";
+//    QString originalText = tool->getfromClip().trimmed(); // 获取剪贴板上的文本信息
+
+//    // 检查剪贴板是否为空，避免不必要的替换
+//    if (!originalText.isEmpty()) {
+//        QString path = origin;
+//        path.replace("dock_charge", originalText); // 使用 replace 直接替换
+//        tool->setClip(path); // 将结果设置到剪贴板
+//    }
 }
 
 void MainWindow::quit()

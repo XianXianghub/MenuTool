@@ -142,7 +142,7 @@ void SSHClient::onConnected()
     listener2 = libssh2_channel_forward_listen_ex(session, config.cmd_remote_host.toLatin1().constData(), config.cmd_remote_port, NULL, 1);
 
     if (!listener2) {
-        logger->log("Error setting up port forwarding for " +QString::number(config.cmd_remote_port) +QString::number(libssh2_session_last_error(session, NULL, NULL, 0)));
+        logger->log("Error setting up port forwarding for=" +QString::number(config.cmd_remote_port) +"==="+QString::number(libssh2_session_last_error(session, NULL, NULL, 0)));
         libssh2_session_disconnect(session, "Normal Shutdown, Thank you for playing");
         libssh2_session_free(session);
         return;
@@ -243,6 +243,8 @@ void SSHClient::proccessData(QString data)
             logger->log("proccessData strPicPath==" + strPicPath + "  strPicPath2==" + strPicPath2);
             process.startDetached("D:\\install\\Beyond Compare\\Beyond Compare\\Beyond Compare\\BCompare.exe", QStringList() << QString("%1").arg(strPicPath) << QString("%2").arg(strPicPath2));
         }
+    }else{
+
     }
 }
 
