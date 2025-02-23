@@ -30,6 +30,11 @@ void LogDialog::clearLog()
     logTextEdit->clear();
 }
 
+void LogDialog::setButtonText(const QString &title)
+{
+    clearButton->setText(title);
+}
+
 void LogDialog::closeEvent(QCloseEvent *event)
 {
     event->ignore();  // 忽略关闭事件

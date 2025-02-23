@@ -18,6 +18,7 @@ public:
 public slots:
     void appendLog(const QString &log);
     void clearLog();
+    void setButtonText(const QString &title);
 
 
 

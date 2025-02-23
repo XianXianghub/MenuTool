@@ -17,9 +17,12 @@
 #include <QProcess>
 #include "sshclientmanager.h"
 #include "logdialog.h"
-#include "MessageDialog.h"
+#include "messagedialog.h"
 #include <QDateTime>
-#include "ConfigParser.h"
+#include "trayiconhandler.h"
+
+#include "mqttclient.h"
+#include "MqttControlDialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -48,14 +51,17 @@ private:
     QAction *getSerialAction;
     QAction *quitAction;
     QAction *w2lAction;
-    QAction *stringAction;
+    QAction *compilationAction;
 
     ToolUtils *tool;
     Logger *logger;
     SSHClientManager *mSSHClientManager;
     LogDialog *logDialog;
+    MqttControlDialog *mqttControlDialog;
     bool isQuit = false;
-    QList<Config> configs;
+    TrayIconHandler *trayHandler;
+    MqttClient *m_mqttClient;
+
 protected:
     void closeEvent(QCloseEvent *event) override;
 
@@ -70,6 +76,9 @@ private slots:
     void openLog();
     void hotkeyPress();
     void handleForwardedSSHData(const QString &data);
+    void handleMqttData(const QString &data);
+
+
 
 };
 

@@ -13,6 +13,7 @@
 #include <QCloseEvent>
 #include <QThread>
 
+#include <QtWidgets/QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -50,13 +51,26 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QString filePath = QCoreApplication::applicationDirPath() + "/client.xml";
 
-    // 创建 ConfigParser 对象
-    ConfigParser parser(filePath);
-
-    // 获取解析后的配置列表
-    configs = parser.parseConfigFile();
 
 
+    mqttControlDialog = new MqttControlDialog();
+
+    m_mqttClient = new MqttClient(this);
+    connect(m_mqttClient, &MqttClient::logMessage, mqttControlDialog,  &MqttControlDialog::appendLog);
+    connect(m_mqttClient, &MqttClient::logMessage, this,  [this]( QString msg){
+        mqttControlDialog->appendLog( QDateTime::currentDateTime().toString("yyyy-MM-dd hh-mm-ss") + " : " + msg);
+        handleMqttData(msg);
+    });
+
+    connect(m_mqttClient, &MqttClient::connectionStateChanged, this, [this](bool connected) {
+        mqttControlDialog->updateConnectState(connected);
+        if(connected)    m_mqttClient->subscribeToTopic("qtmqtt/topic1");
+    });
+
+
+    connect(mqttControlDialog, &MqttControlDialog::connectClicked, m_mqttClient, &MqttClient::connectClicked);
+    connect(mqttControlDialog, &MqttControlDialog::disconnectClicked, m_mqttClient, &MqttClient::disconnectClicked);
+    m_mqttClient->connectToBroker();
 
 }
 
@@ -68,41 +82,30 @@ MainWindow::~MainWindow()
 
 void MainWindow::handleForwardedSSHData(const QString &data)
 {
-    QString project = "";
+    logger->log("Received SSH data:"+ data);
+}
 
-     logger->log("Received SSH data:"+ data);
-     if (data.startsWith("__compile")){
+void MainWindow::handleMqttData(const QString &data)
+{
+    logger->log("handleMqttData:"+ data);
+    if (data.startsWith("__compile")){
         QStringList list = data.split("__");
         if(list.size() > 3){
-            for (const Config &config : configs) {
-                qDebug() << "Name:" << config.name
-                         << "IP:" << config.ip
-                         << "Project:" << config.project;
-                QStringList projectList = config.project.split(",");
-                if(projectList.size()> 0 && projectList.contains(list[2])){
-
-                    if (QString::compare(config.name, "xsq") == 0){
-
-                        if (data.startsWith("__compile_success")){
-                            MessageDialog *dialog = MessageDialog::getInstance();
-                            dialog->showMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译成功 \n"+"文件名:"+list[3], MessageDialog::Success);
-                        }else{
-                            MessageDialog *dialog = MessageDialog::getInstance();
-                            dialog->showMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译失败 \n"+"Error msg:"+list[3], MessageDialog::Failure);
-                        }
-                    }else{
-                        qDebug() << "send IP:" << config.ip
-                                 << "Project:" << config.project;
-                    }
+            ConfigData config = m_mqttClient->getConfigData();
+            qDebug() << "Project:" << config.mqttHost
+                     << "all:" << config.all;
+            QStringList projectList = config.project.split(",");
+            if(config.all || (projectList.size()> 0 && projectList.contains(list[2]))){
+                if (data.startsWith("__compile_success")){
+                    MessageDialog *dialog = MessageDialog::getInstance();
+                    dialog->showMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译成功 \n"+"文件名:"+list[3], MessageDialog::Success);
+                }else{
+                    MessageDialog *dialog = MessageDialog::getInstance();
+                    dialog->showMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译失败 \n"+"Error msg:"+list[3], MessageDialog::Failure);
                 }
-
-
             }
-
-
-
         }
-     }
+    }
 }
 
 void MainWindow::createTrayMenu()
@@ -112,7 +115,7 @@ void MainWindow::createTrayMenu()
     getMacAction = new QAction("mac", this);
     getSerialAction = new QAction("serial", this);
     w2lAction = new QAction("w2l", this);
-    stringAction = new QAction("string", this);
+    compilationAction = new QAction("compilation", this);
 
     restartSshAction = new QAction("ssh", this);
     openLogAction = new QAction("log", this);
@@ -120,7 +123,7 @@ void MainWindow::createTrayMenu()
 
     connect(getDateAction, &QAction::triggered, this, &MainWindow::getDateTime);
     connect(w2lAction, &QAction::triggered, this, &MainWindow::getW2L);
-    connect(stringAction, &QAction::triggered, this, &MainWindow::exuteString);
+    connect(compilationAction, &QAction::triggered, this, &MainWindow::exuteString);
 
     connect(restartSshAction, &QAction::triggered, this, &MainWindow::restartSsh);
     connect(openLogAction, &QAction::triggered, this, &MainWindow::openLog);
@@ -131,7 +134,7 @@ void MainWindow::createTrayMenu()
     myMenu->addAction(getCommentAction);
     myMenu->addAction(getDateAction);
     myMenu->addAction(w2lAction);
-    myMenu->addAction(stringAction);
+    myMenu->addAction(compilationAction);
     myMenu->addAction(restartSshAction);
     myMenu->addAction(openLogAction);
     myMenu->addSeparator();
@@ -161,20 +164,24 @@ void MainWindow::createTrayIcon()
     myTrayIcon->setContextMenu(myMenu);
     myTrayIcon->show();
     connect(myTrayIcon, &QSystemTrayIcon::activated, this, &MainWindow::iconActivated);
+
+    trayHandler = new TrayIconHandler(myTrayIcon);
 }
 
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
 {
     isQuit = true;
+
     switch(reason) {
-        case QSystemTrayIcon::Trigger:
-        case QSystemTrayIcon::DoubleClick:
-            break;
-        case QSystemTrayIcon::MiddleClick:
-            myTrayIcon->showMessage("tips", "SystemTray", QSystemTrayIcon::Information, 500);
-            break;
-        default:
-            break;
+    case QSystemTrayIcon::Trigger:
+    case QSystemTrayIcon::DoubleClick:
+
+        break;
+    case QSystemTrayIcon::MiddleClick:
+        myTrayIcon->showMessage("tips", "SystemTray", QSystemTrayIcon::Information, 500);
+        break;
+    default:
+        break;
     }
 }
 
@@ -211,15 +218,7 @@ void MainWindow::getW2L()
 
 void MainWindow::exuteString()
 {
-//    QString origin = "setTitle(R.string.dock_charge);";
-//    QString originalText = tool->getfromClip().trimmed(); // 获取剪贴板上的文本信息
-
-//    // 检查剪贴板是否为空，避免不必要的替换
-//    if (!originalText.isEmpty()) {
-//        QString path = origin;
-//        path.replace("dock_charge", originalText); // 使用 replace 直接替换
-//        tool->setClip(path); // 将结果设置到剪贴板
-//    }
+    mqttControlDialog->show();
 }
 
 void MainWindow::quit()
