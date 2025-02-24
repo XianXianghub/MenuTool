@@ -215,6 +215,8 @@ void SSHClient::proccessData(QString data)
                 logger->log("DirExist true");
                 QString strPicPath = list[1];
                 strPicPath.replace("/", "\\");
+                logger->log("proccessData strPicPath==" + strPicPath);
+
                 QProcess process;
                 process.startDetached("explorer", QStringList() << QString("/root,") << QString("%1").arg(strPicPath));
             }
@@ -222,6 +224,8 @@ void SSHClient::proccessData(QString data)
             {
                 QString strPicPath = list[1];
                 strPicPath.replace("/", "\\");
+                logger->log("proccessData strPicPath==" + strPicPath);
+
                 QProcess process;
                 process.startDetached("explorer", QStringList() << QString("/select,") << QString("%1").arg(strPicPath));
             }
