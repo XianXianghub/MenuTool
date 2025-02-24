@@ -99,9 +99,14 @@ void MainWindow::handleMqttData(const QString &data)
                 if (data.startsWith("__compile_success")){
                     MessageDialog *dialog = MessageDialog::getInstance();
                     dialog->showMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译成功 \n"+"文件名:"+list[3], MessageDialog::Success);
+                    trayHandler->showMessage("编译成功",
+                                             QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译成功 \n"+"文件名:"+list[3]);
                 }else{
                     MessageDialog *dialog = MessageDialog::getInstance();
                     dialog->showMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译失败 \n"+"Error msg:"+list[3], MessageDialog::Failure);
+                    trayHandler->showMessage("编译失败",
+                                             QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译失败 \n"+"Error msg:"+list[3]);
+
                 }
             }
         }

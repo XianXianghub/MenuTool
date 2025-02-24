@@ -15,7 +15,7 @@ void TrayIconHandler::showMessage(const QString &title, const QString &message)
     lastMessageContent = message;
 
     // 显示托盘消息
-    trayIcon->showMessage(title, message, QSystemTrayIcon::Information, 5000);
+    trayIcon->showMessage(title, message, QSystemTrayIcon::Information, 3000);
 }
 
 void TrayIconHandler::onMessageClicked()
