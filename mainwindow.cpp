@@ -16,6 +16,7 @@
 
 #include <QtWidgets/QMessageBox>
 
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -37,21 +38,24 @@ MainWindow::MainWindow(QWidget *parent) :
     } else {
         logger->log("快捷键已占用");
         QMessageBox::information(this, "Title", "快捷键已占用", QMessageBox::Yes);
+        QApplication::quit();
+        std::exit(0);  // 0 表示正常退出
+
     }
 
-    // 日志消息连接到日志对话框
-    connect(logger, &Logger::newLogMessage, logDialog, &LogDialog::appendLog);
+    if(IS_MASTER){
 
-    // SSH 客户端管理器
-    connect(mSSHClientManager, &SSHClientManager::forwardSSHData, this, &MainWindow::handleForwardedSSHData);
+        // 日志消息连接到日志对话框
+        connect(logger, &Logger::newLogMessage, logDialog, &LogDialog::appendLog);
 
-    // 加载 SSH 配置并启动客户端
-    QString configPath = QCoreApplication::applicationDirPath() + "/remoteConfig.xml";
-    mSSHClientManager->loadConfigsAndStartClients(configPath);
+        // SSH 客户端管理器
+        connect(mSSHClientManager, &SSHClientManager::forwardSSHData, this, &MainWindow::handleForwardedSSHData);
 
+        // 加载 SSH 配置并启动客户端
+        QString configPath = QCoreApplication::applicationDirPath() + "/remoteConfig.xml";
+        mSSHClientManager->loadConfigsAndStartClients(configPath);
 
-    QString filePath = QCoreApplication::applicationDirPath() + "/client.xml";
-
+    }
 
 
     mqttControlDialog = new MqttControlDialog();
@@ -65,7 +69,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_mqttClient, &MqttClient::connectionStateChanged, this, [this](bool connected) {
         mqttControlDialog->updateConnectState(connected);
-        if(connected)    m_mqttClient->subscribeToTopic("qtmqtt/topic1");
+        if(connected)    m_mqttClient->subscribeToTopic("meferi/aosp/compilation");
     });
 
 
@@ -137,12 +141,18 @@ void MainWindow::createTrayMenu()
     connect(getCommentAction, &QAction::triggered, this, &MainWindow::getComment);
 
     myMenu = new QMenu();
-    myMenu->addAction(getCommentAction);
-    myMenu->addAction(getDateAction);
-    myMenu->addAction(w2lAction);
-    myMenu->addAction(compilationAction);
-    myMenu->addAction(restartSshAction);
-    myMenu->addAction(openLogAction);
+
+    if(IS_MASTER){
+        myMenu->addAction(getCommentAction);
+        myMenu->addAction(getDateAction);
+        myMenu->addAction(compilationAction);
+        myMenu->addAction(w2lAction);
+        myMenu->addAction(restartSshAction);
+        myMenu->addAction(openLogAction);
+    }else{
+        myMenu->addAction(compilationAction);
+    }
+
     myMenu->addSeparator();
     myMenu->addAction(quitAction);
 
