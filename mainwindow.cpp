@@ -31,9 +31,17 @@ MainWindow::MainWindow(QWidget *parent) :
     // 创建托盘图标和菜单
     createTrayIcon();
 
+    QString hotkey = "F1";
+
+    if(IS_MASTER){
+        hotkey = "F1";
+    }else{
+        hotkey = "F2";
+    }
+
     // 设置全局快捷键
     QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
-    if (shortcut->setShortcut(QKeySequence("F1"))) {
+    if (shortcut->setShortcut(QKeySequence(hotkey))) {
         connect(shortcut, &QxtGlobalShortcut::activated, this, &MainWindow::hotkeyPress);
     } else {
         logger->log("快捷键已占用");
