@@ -14,6 +14,7 @@ struct ConfigData {
     QString mqttPassword;
     bool all;
     QString project;
+    bool isShowFailed;
 };
 
 class ClientConfig

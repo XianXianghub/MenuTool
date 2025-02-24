@@ -73,26 +73,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(mqttControlDialog, &MqttControlDialog::disconnectClicked, m_mqttClient, &MqttClient::disconnectClicked);
     m_mqttClient->connectToBroker();
 
-
-//    QString command = "explorer.exe";
-//    QStringList arguments;
-//    QString networkPath = "\\\\192.168.101.80\\share\\daily_build";
-
-//    arguments << networkPath;
-
-
-
-//X:\\mqtt\\mqtt_demo
-    // 启动进程
-//    QProcess process;
-//    process.start(command, arguments);
-
-//    if (process.waitForStarted()) {
-//        qDebug() << "Successfully opened:" ;
-//    } else {
-//        qDebug() << "Failed to open:" ;
-//    }
-
 }
 
 MainWindow::~MainWindow()
@@ -114,6 +94,7 @@ void MainWindow::handleMqttData(const QString &data)
         if(list.size() > 3){
             ConfigData config = m_mqttClient->getConfigData();
             qDebug() << "Project:" << config.mqttHost
+                        << "isShowFailed:" << config.isShowFailed
                      << "all:" << config.all;
             QStringList projectList = config.project.split(",");
             if(config.all || (projectList.size()> 0 && projectList.contains(list[2]))){
@@ -122,7 +103,7 @@ void MainWindow::handleMqttData(const QString &data)
                     dialog->showMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译成功 \n"+"文件名:"+list[3], MessageDialog::Success);
                     trayHandler->showMessage("编译成功",
                                              QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译成功 \n"+"文件名:"+list[3]);
-                }else{
+                }else if(config.isShowFailed){
                     MessageDialog *dialog = MessageDialog::getInstance();
                     dialog->showMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss")+"\n"+list[2]+ +" 编译失败 \n"+"Error msg:"+list[3], MessageDialog::Failure);
                     trayHandler->showMessage("编译失败",

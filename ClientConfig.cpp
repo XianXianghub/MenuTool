@@ -51,6 +51,8 @@ ConfigData ClientConfig::parseXml(const QDomElement &root)
                 config.all = (element.text() == "true");
             } else if (element.tagName() == "project") {
                 config.project = element.text();
+            }else if (element.tagName() == "isShowFailed") {
+                config.isShowFailed = (element.text() == "true");
             }
         }
     }
