@@ -25,7 +25,7 @@
 #include "MqttControlDialog.h"
 
 
-#define IS_MASTER  1
+#define IS_MASTER  0
 
 namespace Ui {
 class MainWindow;

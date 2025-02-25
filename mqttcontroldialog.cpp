@@ -22,7 +22,7 @@ MqttControlDialog::MqttControlDialog(QWidget *parent)
 
 
     // 设置窗口标题和大小
-    setWindowTitle("MQTT Control");
+    setWindowTitle("Log Viewer");
     resize(600, 500);
 
 

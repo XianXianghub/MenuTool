@@ -31,27 +31,20 @@ MainWindow::MainWindow(QWidget *parent) :
     // 创建托盘图标和菜单
     createTrayIcon();
 
-    QString hotkey = "F1";
+
+
 
     if(IS_MASTER){
-        hotkey = "F1";
-    }else{
-        hotkey = "F2";
-    }
+        QString hotkey = "F1";
 
-    // 设置全局快捷键
-    QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
-    if (shortcut->setShortcut(QKeySequence(hotkey))) {
-        connect(shortcut, &QxtGlobalShortcut::activated, this, &MainWindow::hotkeyPress);
-    } else {
-        logger->log("快捷键已占用");
-        QMessageBox::information(this, "Title", "快捷键已占用", QMessageBox::Yes);
-        QApplication::quit();
-        std::exit(0);  // 0 表示正常退出
+        QxtGlobalShortcut *shortcut = new QxtGlobalShortcut(this);
+        if (shortcut->setShortcut(QKeySequence(hotkey))) {
+            connect(shortcut, &QxtGlobalShortcut::activated, this, &MainWindow::hotkeyPress);
+        } else {
+            logger->log("快捷键已占用");
+            QMessageBox::information(this, "Title", "快捷键已占用", QMessageBox::Yes);
 
-    }
-
-    if(IS_MASTER){
+        }
 
         // 日志消息连接到日志对话框
         connect(logger, &Logger::newLogMessage, logDialog, &LogDialog::appendLog);
@@ -106,7 +99,7 @@ void MainWindow::handleMqttData(const QString &data)
         if(list.size() > 3){
             ConfigData config = m_mqttClient->getConfigData();
             qDebug() << "Project:" << config.mqttHost
-                        << "isShowFailed:" << config.isShowFailed
+                     << "isShowFailed:" << config.isShowFailed
                      << "all:" << config.all;
             QStringList projectList = config.project.split(",");
             if(config.all || (projectList.size()> 0 && projectList.contains(list[2]))){
@@ -133,7 +126,7 @@ void MainWindow::createTrayMenu()
     getMacAction = new QAction("mac", this);
     getSerialAction = new QAction("serial", this);
     w2lAction = new QAction("w2l", this);
-    compilationAction = new QAction("compilation", this);
+    compilationAction = new QAction("mqtt", this);
 
     restartSshAction = new QAction("ssh", this);
     openLogAction = new QAction("log", this);
@@ -187,6 +180,7 @@ void MainWindow::createTrayIcon()
     myTrayIcon->showMessage("tips", "SystemTray", QSystemTrayIcon::Information, 500);
     myTrayIcon->setContextMenu(myMenu);
     myTrayIcon->show();
+
     connect(myTrayIcon, &QSystemTrayIcon::activated, this, &MainWindow::iconActivated);
 
     trayHandler = new TrayIconHandler(myTrayIcon);
