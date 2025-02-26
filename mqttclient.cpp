@@ -20,6 +20,8 @@ void MqttClient::connectToBroker()
 
     ClientConfig clientConfig;
     mConfigData = clientConfig.parse(filePath);
+    emit logMessage(QDateTime::currentDateTime().toString("yyyy-MM-dd hh-mm-ss") + ": project = "+mConfigData.project);
+
     m_client->setHostname(mConfigData.mqttHost);
     m_client->setPort(mConfigData.mqttPort);
     m_client->setUsername(mConfigData.mqttUsername);

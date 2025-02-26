@@ -54,6 +54,7 @@ RESOURCES += \
 LIBS += -lws2_32
 
 
+
 #LIBS += $$PWD/lib/libssh2.a
 
 #LIBS += -L$$PWD/lib/ -llibssh2
