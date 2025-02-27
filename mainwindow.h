@@ -43,6 +43,7 @@ private:
      Ui::MainWindow *ui;
     void createTrayMenu();
     void createTrayIcon();
+    void setIconState(bool connected);
 
     QSystemTrayIcon *myTrayIcon;
     QMenu *myMenu;
@@ -64,6 +65,8 @@ private:
     bool isQuit = false;
     TrayIconHandler *trayHandler;
     MqttClient *m_mqttClient;
+    bool sshConnected = false;
+    bool mqttConnected = false;
 
 protected:
     void closeEvent(QCloseEvent *event) override;

@@ -1,6 +1,8 @@
 <RCC>
     <qresource prefix="/">
         <file>stylesheet.qss</file>
+        <file>image/pkq_green.ico</file>
+        <file>image/pkq_red.ico</file>
         <file>image/pkq.ico</file>
     </qresource>
 </RCC>

@@ -71,6 +71,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_mqttClient, &MqttClient::connectionStateChanged, this, [this](bool connected) {
         mqttControlDialog->updateConnectState(connected);
         if(connected)    m_mqttClient->subscribeToTopic("meferi/aosp/compilation");
+        myTrayIcon->setIcon(connected?QIcon(":/image/pkq_green.ico"):QIcon(":/image/pkq_red.ico"));
+        mqttConnected = connected;
+//        if(IS_MASTER){
+            setIconState(mqttConnected && sshConnected);
+//        }else {
+//            setIconState(mqttConnected);
+//        }
+
     });
 
 
@@ -184,6 +192,16 @@ void MainWindow::createTrayIcon()
     connect(myTrayIcon, &QSystemTrayIcon::activated, this, &MainWindow::iconActivated);
 
     trayHandler = new TrayIconHandler(myTrayIcon);
+}
+
+void MainWindow::setIconState(bool connected)
+{
+    if(connected){
+        myTrayIcon->setIcon(QIcon(":/image/pkq_green.ico"));
+    }else{
+        myTrayIcon->setIcon(QIcon(":/image/pkq_red.ico"));
+
+    }
 }
 
 void MainWindow::iconActivated(QSystemTrayIcon::ActivationReason reason)
