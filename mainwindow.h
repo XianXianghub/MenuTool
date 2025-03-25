@@ -65,7 +65,6 @@ private:
     bool isQuit = false;
     TrayIconHandler *trayHandler;
     MqttClient *m_mqttClient;
-    bool sshConnected = false;
     bool mqttConnected = false;
 
 protected:

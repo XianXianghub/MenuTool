@@ -78,7 +78,7 @@ void MessageDialog::myButtonClick(bool checked)
             QStringList list2 = list[1].split(" ");
             if(list2.size() >= 2){
                 if(QString::compare(list2[1], "编译成功") == 0){
-                    QString strPicPath =  "\\\\192.168.101.80\\share\\daily_build\\"+list2[0];
+                    QString strPicPath =  "\\\\192.168.101.87\\share\\daily_build\\"+list2[0];
                     qDebug() << "Project strPicPath:" << strPicPath;
                     QStringList list3 = list[2].split(":");
                     if(list3.size() >= 2){

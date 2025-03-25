@@ -74,7 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
         myTrayIcon->setIcon(connected?QIcon(":/image/pkq_green.ico"):QIcon(":/image/pkq_red.ico"));
         mqttConnected = connected;
 //        if(IS_MASTER){
-            setIconState(mqttConnected && sshConnected);
+            setIconState(mqttConnected);
 //        }else {
 //            setIconState(mqttConnected);
 //        }
